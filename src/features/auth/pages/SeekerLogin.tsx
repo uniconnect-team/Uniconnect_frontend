@@ -33,6 +33,7 @@ export function SeekerLogin() {
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSuccessMessage(null);
+
     const emailError = validateEmail(email);
     const passwordError = password ? null : "Password is required";
 
@@ -123,7 +124,7 @@ export function SeekerLogin() {
 
       <div className="text-center space-y-2 text-sm">
         <p className="text-gray-500">
-          Don’t have an account?{' '}
+          Don’t have an account?{" "}
           <Link to="/signup" className="text-[var(--brand)] font-medium">
             Sign up Now
           </Link>
@@ -135,3 +136,4 @@ export function SeekerLogin() {
     </form>
   );
 }
+

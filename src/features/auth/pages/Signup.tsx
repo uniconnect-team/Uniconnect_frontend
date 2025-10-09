@@ -154,7 +154,7 @@ export function Signup() {
 
       <div className="text-center space-y-2 text-sm">
         <p className="text-gray-500">
-          Already have a Molly account?{' '}
+          Already have a Molly account?{" "}
           <Link to="/login/seeker" className="text-[var(--brand)] font-medium">
             Enter here
           </Link>
