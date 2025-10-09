@@ -1,0 +1,55 @@
+import { useNavigate } from "react-router-dom";
+import { Icon } from "../../../components/Icon";
+
+const cards = [
+  {
+    label: "Dormitory Seeker",
+    path: "/login/seeker",
+  },
+  {
+    label: "Dormitory Owner",
+    path: "/login/owner",
+  },
+];
+
+export function RoleSelect() {
+  const navigate = useNavigate();
+
+  return (
+    <div className="space-y-6">
+      <button
+        type="button"
+        className="text-gray-500 flex items-center gap-2"
+        onClick={() => navigate(-1)}
+      >
+        <Icon name="chevron-left" className="w-5 h-5" />
+        <span className="text-sm">Back</span>
+      </button>
+      <div className="space-y-2">
+        <h1 className="text-2xl font-semibold">Welcome</h1>
+        <p className="text-sm text-gray-500">I want to login as</p>
+      </div>
+      <div className="space-y-4">
+        {cards.map((card) => (
+          <button
+            key={card.path}
+            type="button"
+            onClick={() => navigate(card.path)}
+            className="w-full bg-white rounded-2xl shadow-md px-4 py-4 flex items-center gap-4 active:scale-[.99] transition transform focus:outline-none focus:ring-2 focus:ring-[color:var(--brand)] focus:ring-offset-2"
+          >
+            <div className="w-16 h-16 rounded-full bg-gray-100" aria-hidden="true" />
+            <div className="text-left">
+              <p className="font-medium text-base text-[color:var(--ink)]">{card.label}</p>
+            </div>
+          </button>
+        ))}
+      </div>
+      <p className="text-center text-sm text-gray-500">
+        Need Help?{' '}
+        <a href="#" className="text-[var(--brand)] font-medium">
+          Click Here
+        </a>
+      </p>
+    </div>
+  );
+}
