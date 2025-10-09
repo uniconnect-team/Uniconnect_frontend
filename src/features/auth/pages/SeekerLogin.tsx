@@ -1,19 +1,30 @@
-import { FormEvent, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FormField } from "../../../components/FormField";
+import { FeedbackMessage } from "../../../components/FeedbackMessage";
 import { Icon } from "../../../components/Icon";
-import { login } from "../../../lib/api";
+import { ApiError, login } from "../../../lib/api";
 import { validateEmail } from "../../../lib/validators";
 
 export function SeekerLogin() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string | null; password?: string | null }>({});
   const [submitting, setSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const toastMessage = (location.state as { toast?: string } | null)?.toast;
+    if (toastMessage) {
+      setSuccessMessage(toastMessage);
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location.pathname, location.state, navigate]);
 
   const isValid = useMemo(() => {
     return !validateEmail(email) && password.length > 0;
@@ -21,6 +32,8 @@ export function SeekerLogin() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setSuccessMessage(null);
+
     const emailError = validateEmail(email);
     const passwordError = password ? null : "Password is required";
 
@@ -36,8 +49,12 @@ export function SeekerLogin() {
         localStorage.setItem("token", res.access);
         navigate("/home");
       })
-      .catch((error: Error) => {
-        setSubmitError(error.message || "Login failed");
+      .catch((error: unknown) => {
+        if (error instanceof ApiError) {
+          setSubmitError(error.message || "Login failed");
+        } else {
+          setSubmitError("Something went wrong. Please try again.");
+        }
       })
       .finally(() => setSubmitting(false));
   }
@@ -89,7 +106,10 @@ export function SeekerLogin() {
         </label>
       </div>
 
-      {submitError ? <p className="text-sm text-red-600">{submitError}</p> : null}
+      <div className="space-y-3">
+        {successMessage ? <FeedbackMessage variant="success" message={successMessage} /> : null}
+        {submitError ? <FeedbackMessage variant="error" message={submitError} /> : null}
+      </div>
 
       <button
         type="submit"
@@ -104,7 +124,7 @@ export function SeekerLogin() {
 
       <div className="text-center space-y-2 text-sm">
         <p className="text-gray-500">
-          Don’t have an account?{' '}
+          Don’t have an account?{" "}
           <Link to="/signup" className="text-[var(--brand)] font-medium">
             Sign up Now
           </Link>
@@ -116,3 +136,4 @@ export function SeekerLogin() {
     </form>
   );
 }
+

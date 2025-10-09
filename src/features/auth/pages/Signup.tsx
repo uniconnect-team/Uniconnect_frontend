@@ -1,8 +1,9 @@
 import { FormEvent, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FormField } from "../../../components/FormField";
+import { FeedbackMessage } from "../../../components/FeedbackMessage";
 import { Icon } from "../../../components/Icon";
-import { register } from "../../../lib/api";
+import { ApiError, register } from "../../../lib/api";
 import { validateEmail, validateLength, validatePassword } from "../../../lib/validators";
 
 export function Signup() {
@@ -14,7 +15,7 @@ export function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [submitting, setSubmitting] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const isValid = useMemo(() => {
     const trimmedFullName = fullName.trim();
@@ -49,7 +50,7 @@ export function Signup() {
     };
 
     setErrors(nextErrors);
-    setFeedback(null);
+    setFormError(null);
 
     if (fullNameError || phoneError || emailError || passwordError) {
       return;
@@ -65,11 +66,14 @@ export function Signup() {
       role: "SEEKER",
     })
       .then(() => {
-        setFeedback("Account created");
-        navigate("/login/seeker");
+        navigate("/login/seeker", { state: { toast: "Account created" } });
       })
-      .catch((error: Error) => {
-        setFeedback(error.message || "Unable to sign up");
+      .catch((error: unknown) => {
+        if (error instanceof ApiError) {
+          setFormError(error.message || "Unable to sign up");
+        } else {
+          setFormError("Unable to sign up. Please try again.");
+        }
       })
       .finally(() => setSubmitting(false));
   }
@@ -135,11 +139,7 @@ export function Signup() {
         />
       </div>
 
-      {feedback ? (
-        <p className={`text-sm ${feedback === "Account created" ? "text-[color:var(--brand)]" : "text-red-600"}`}>
-          {feedback}
-        </p>
-      ) : null}
+      {formError ? <FeedbackMessage variant="error" message={formError} /> : null}
 
       <button
         type="submit"
@@ -154,7 +154,7 @@ export function Signup() {
 
       <div className="text-center space-y-2 text-sm">
         <p className="text-gray-500">
-          Already have a Molly account?{' '}
+          Already have a Molly account?{" "}
           <Link to="/login/seeker" className="text-[var(--brand)] font-medium">
             Enter here
           </Link>
