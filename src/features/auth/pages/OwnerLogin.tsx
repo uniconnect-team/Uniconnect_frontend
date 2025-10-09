@@ -1,8 +1,9 @@
 import { FormEvent, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FormField } from "../../../components/FormField";
+import { FeedbackMessage } from "../../../components/FeedbackMessage";
 import { Icon } from "../../../components/Icon";
-import { login } from "../../../lib/api";
+import { ApiError, login } from "../../../lib/api";
 import { validateRequired } from "../../../lib/validators";
 
 export function OwnerLogin() {
@@ -34,8 +35,12 @@ export function OwnerLogin() {
         localStorage.setItem("token", res.access);
         navigate("/home");
       })
-      .catch((error: Error) => {
-        setSubmitError(error.message || "Login failed");
+      .catch((error: unknown) => {
+        if (error instanceof ApiError) {
+          setSubmitError(error.message || "Login failed");
+        } else {
+          setSubmitError("Something went wrong. Please try again.");
+        }
       })
       .finally(() => setSubmitting(false));
   }
@@ -87,7 +92,7 @@ export function OwnerLogin() {
         </label>
       </div>
 
-      {submitError ? <p className="text-sm text-red-600">{submitError}</p> : null}
+      {submitError ? <FeedbackMessage variant="error" message={submitError} /> : null}
 
       <button
         type="submit"
@@ -102,7 +107,7 @@ export function OwnerLogin() {
 
       <div className="text-center space-y-2 text-sm">
         <p className="text-gray-500">
-          Don’t have an account?{' '}
+          Don’t have an account?{" "}
           <Link to="/signup" className="text-[var(--brand)] font-medium">
             Sign up Now
           </Link>

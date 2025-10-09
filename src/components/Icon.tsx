@@ -1,19 +1,6 @@
 import type { SVGProps } from "react";
 
-type IconName =
-  | "chevron-left"
-  | "mail"
-  | "lock"
-  | "eye"
-  | "eye-off"
-  | "phone"
-  | "user"
-  | "close"
-  | "menu"
-  | "search"
-  | "heart";
-
-const icons: Record<IconName, (props: SVGProps<SVGSVGElement>) => JSX.Element> = {
+const icons = {
   "chevron-left": (props) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
       <path d="m15 18-6-6 6-6" />
@@ -79,7 +66,22 @@ const icons: Record<IconName, (props: SVGProps<SVGSVGElement>) => JSX.Element> =
       <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z" />
     </svg>
   ),
-};
+  "alert-circle": (props) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M12 8v4" />
+      <path d="M12 16h.01" />
+    </svg>
+  ),
+  "check-circle": (props) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="m9 12 2 2 4-4" />
+    </svg>
+  ),
+} satisfies Record<string, (props: SVGProps<SVGSVGElement>) => JSX.Element>;
+
+export type IconName = keyof typeof icons;
 
 type IconProps = SVGProps<SVGSVGElement> & {
   name: IconName;
