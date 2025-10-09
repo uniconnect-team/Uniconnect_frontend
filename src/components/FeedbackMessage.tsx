@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 
-import { Icon } from "./Icon";
+import { Icon, type IconName } from "./Icon";
 
 type FeedbackMessageProps = {
   variant: "error" | "success";
@@ -13,7 +13,7 @@ const variantStyles: Record<FeedbackMessageProps["variant"], string> = {
   success: "bg-emerald-50 border-emerald-200 text-emerald-700",
 };
 
-const variantIcons: Record<FeedbackMessageProps["variant"], "alert-circle" | "check-circle"> = {
+const variantIcons: Record<FeedbackMessageProps["variant"], IconName> = {
   error: "alert-circle",
   success: "check-circle",
 };

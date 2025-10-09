@@ -62,9 +62,21 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
 
     if (res.status === 400 || res.status === 401) {
       const normalized = message.toLowerCase();
-      if (normalized.includes("credential") || normalized.includes("not found")) {
+      if (
+        normalized.includes("credential") ||
+        normalized.includes("not found") ||
+        normalized.includes("invalid")
+      ) {
         message = "We couldn't find an account with those details.";
       }
+    }
+
+    if (res.status === 409) {
+      message = "An account with these details already exists. Try logging in instead.";
+    }
+
+    if (res.status >= 500) {
+      message = "Something went wrong on our side. Please try again in a moment.";
     }
 
     throw new ApiError(message.trim(), res.status, parsed ?? text);

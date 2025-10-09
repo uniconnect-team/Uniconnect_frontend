@@ -81,7 +81,7 @@ const icons = {
   ),
 } satisfies Record<string, (props: SVGProps<SVGSVGElement>) => JSX.Element>;
 
-type IconName = keyof typeof icons;
+export type IconName = keyof typeof icons;
 
 type IconProps = SVGProps<SVGSVGElement> & {
   name: IconName;
