@@ -66,6 +66,27 @@ const icons = {
       <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z" />
     </svg>
   ),
+  bed: (props) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M2 20v-8a2 2 0 0 1 2-2h12a4 4 0 0 1 4 4v6" />
+      <path d="M2 12h18" />
+      <path d="M6 16h.01" />
+      <path d="M10 16h.01" />
+      <path d="M2 20h20" />
+    </svg>
+  ),
+  building: (props) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <rect x="3" y="3" width="8" height="18" rx="1" />
+      <rect x="13" y="7" width="8" height="14" rx="1" />
+      <path d="M7 7h.01" />
+      <path d="M7 11h.01" />
+      <path d="M7 15h.01" />
+      <path d="M17 11h.01" />
+      <path d="M17 15h.01" />
+      <path d="M17 19h.01" />
+    </svg>
+  ),
   "alert-circle": (props) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
       <circle cx="12" cy="12" r="10" />

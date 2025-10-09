@@ -88,7 +88,24 @@ export function Signup() {
         <span className="w-5" aria-hidden="true" />
       </header>
 
-      <div className="w-full h-36 bg-gray-100 rounded-2xl" aria-hidden="true" />
+      <div
+        className="relative w-full h-36 rounded-2xl overflow-hidden bg-gradient-to-br from-[rgba(42,194,74,0.2)] via-white to-[#DDF9E6]"
+        aria-hidden="true"
+      >
+        <div className="absolute -left-10 top-8 w-28 h-28 rounded-full bg-[rgba(42,194,74,0.18)] blur-sm" />
+        <div className="absolute -right-6 -bottom-6 w-32 h-32 rounded-full bg-[rgba(42,194,74,0.12)]" />
+        <div className="absolute right-6 top-6 w-16 h-16 rounded-2xl bg-white/80 shadow-lg flex items-center justify-center">
+          <Icon name="building" className="w-9 h-9 text-[color:var(--brand)]" />
+        </div>
+        <div className="absolute left-6 bottom-6 flex items-center gap-4">
+          <div className="w-12 h-12 rounded-full bg-white shadow-md flex items-center justify-center">
+            <Icon name="user" className="w-6 h-6 text-[color:var(--brand)]" />
+          </div>
+          <div className="w-10 h-10 rounded-full bg-[color:var(--brand)]/20 flex items-center justify-center">
+            <Icon name="heart" className="w-5 h-5 text-[color:var(--brand)]" />
+          </div>
+        </div>
+      </div>
 
       <div className="space-y-4">
         <FormField
@@ -154,7 +171,7 @@ export function Signup() {
 
       <div className="text-center space-y-2 text-sm">
         <p className="text-gray-500">
-          Already have a Molly account?{" "}
+          Already have a Molly account?{' '}
           <Link to="/login/seeker" className="text-[var(--brand)] font-medium">
             Enter here
           </Link>

@@ -48,7 +48,6 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
     credentials: "omit",
     ...init,
   });
-
   if (!res.ok) {
     const text = await res.text();
     let parsed: unknown;
@@ -82,7 +81,6 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
 
     throw new ApiError(message.trim(), res.status, parsed ?? text);
   }
-
   return res.json() as Promise<T>;
 }
 
