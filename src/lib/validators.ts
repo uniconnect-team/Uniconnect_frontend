@@ -26,3 +26,4 @@ export function validateLength(
   if (max !== undefined && value.length > max) return message;
   return null;
 }
+// checking if the inputs are in the correct form (valid) and returns an error if not 

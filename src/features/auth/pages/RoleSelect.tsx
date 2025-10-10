@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Icon } from "../../../components/Icon";
 import type { IconName } from "../../../components/Icon";
 
+//role selection, dorm owner or student looking for dorm
 const cards: Array<{ label: string; path: string; icon: IconName }> = [
   {
     label: "Dormitory Seeker",

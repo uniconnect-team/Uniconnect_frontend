@@ -6,6 +6,8 @@ import { Icon } from "../../../components/Icon";
 import { ApiError, login } from "../../../lib/api";
 import { validateEmail } from "../../../lib/validators";
 
+//login page , input email and password, validates
+
 export function SeekerLogin() {
   const navigate = useNavigate();
   const location = useLocation();

@@ -2,7 +2,7 @@ import type { LoginBody, RegisterBody, TokenLoginResponse } from "./types";
 
 export const API_URL = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
 
-export class ApiError extends Error {
+export class ApiError extends Error { //for errors
   status: number;
   data: unknown;
 
@@ -14,7 +14,7 @@ export class ApiError extends Error {
   }
 }
 
-function deriveErrorMessage(data: unknown): string | null {
+function deriveErrorMessage(data: unknown): string | null {  
   if (!data) return null;
 
   if (typeof data === "string") {
@@ -42,7 +42,7 @@ function deriveErrorMessage(data: unknown): string | null {
   return null;
 }
 
-export async function api<T>(path: string, init?: RequestInit): Promise<T> {
+export async function api<T>(path: string, init?: RequestInit): Promise<T> { //making requests to backend
   const res = await fetch(`${API_URL}${path}`, {
     headers: { "Content-Type": "application/json", ...(init?.headers || {}) },
     credentials: "omit",
@@ -84,7 +84,7 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export async function register(body: RegisterBody) {
+export async function register(body: RegisterBody) { //when a new user signs up
   return api<{
     id: number;
     username: string;
@@ -98,7 +98,7 @@ export async function register(body: RegisterBody) {
   });
 }
 
-export async function login(body: LoginBody) {
+export async function login(body: LoginBody) { //when a user logs in
   return api<TokenLoginResponse>("/api/v1/auth/login/", {
     method: "POST",
     body: JSON.stringify(body),
