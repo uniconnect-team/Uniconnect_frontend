@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Icon } from "../../../components/Icon";
 import type { IconName } from "../../../components/Icon";
 
-//role selection, dorm owner or student looking for dorm
+//role selection, dorm owner or student looking for dorm, this is the first page user sees when they want to login
 const cards: Array<{ label: string; path: string; icon: IconName }> = [
   {
     label: "Dormitory Seeker",
@@ -16,7 +16,7 @@ const cards: Array<{ label: string; path: string; icon: IconName }> = [
   },
 ];
 
-export function RoleSelect() {
+export function RoleSelect() { //role selection page
   const navigate = useNavigate();
 
   return (
