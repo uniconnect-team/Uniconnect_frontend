@@ -2,19 +2,19 @@ const emailRegex = /^[\w.!#$%&'*+/=?^`{|}~-]+@[\w-]+(?:\.[\w-]+)+$/i;
 const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
 
 export function validateEmail(value: string): string | null {
-  if (!value) return "Email is required";
+  if (!value) return "Email is required"; //error if no email is entered
   return emailRegex.test(value) ? null : "Enter a valid email";
 }
 
 export function validatePassword(value: string): string | null {
-  if (!value) return "Password is required";
+  if (!value) return "Password is required"; //error if no password is entered
   return passwordRegex.test(value)
     ? null
     : "Password must be 8+ chars with letters and numbers";
 }
 
 export function validateRequired(value: string, message: string): string | null {
-  return value ? null : message;
+  return value ? null : message;  //error if the field is empty
 }
 
 export function validateLength(
