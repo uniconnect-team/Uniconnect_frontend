@@ -5,7 +5,7 @@ import { FeedbackMessage } from "../../../components/FeedbackMessage";
 import { Icon } from "../../../components/Icon";
 import { ApiError, login } from "../../../lib/api";
 import { validateRequired } from "../../../lib/validators";
-
+//dorm owner log in page
 export function OwnerLogin() {
   const navigate = useNavigate();
   const [phone, setPhone] = useState("");

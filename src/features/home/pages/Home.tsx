@@ -1,5 +1,5 @@
 import { Icon } from "../../../components/Icon";
-
+//homepage
 export function Home() {
   return (
     <div className="space-y-6">

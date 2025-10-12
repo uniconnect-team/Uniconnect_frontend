@@ -1,0 +1,13 @@
+[33mb12e741[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m final
+[33m50386e8[m cleaning up, slight fixes
+[33m2498089[m fixing errors
+[33m8dfda86[m signup and login code is done, fixed errors, cleaned up codes
+[33m4c7f648[m completed log in
+[33m040043a[m improve auth error handling
+[33m1ee009d[m Fixed error handling
+[33mdec4862[m Improve auth error messaging and icon typing
+[33m6549adc[m refactor icon name typing
+[33m189cc68[m feat: improve auth error handling
+[33md88854d[m login frotnend
+[33mf555049[m feat: scaffold frontend application
+[33mc6a821c[m Initial commit

@@ -6,6 +6,8 @@ import { Icon } from "../../../components/Icon";
 import { ApiError, login } from "../../../lib/api";
 import { validateEmail } from "../../../lib/validators";
 
+//login page , input email and password, validates
+
 export function SeekerLogin() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -18,7 +20,7 @@ export function SeekerLogin() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  useEffect(() => {
+  useEffect(() => { //show success message after redirect from another page
     const toastMessage = (location.state as { toast?: string } | null)?.toast;
     if (toastMessage) {
       setSuccessMessage(toastMessage);
@@ -30,7 +32,7 @@ export function SeekerLogin() {
     return !validateEmail(email) && password.length > 0;
   }, [email, password]);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {  //handling form submission
     event.preventDefault();
     setSuccessMessage(null);
     const emailError = validateEmail(email);
@@ -38,12 +40,12 @@ export function SeekerLogin() {
 
     setErrors({ email: emailError, password: passwordError });
 
-    if (emailError || passwordError) return;
+    if (emailError || passwordError) return; //if there are errors, do not proceed
 
     setSubmitting(true);
     setSubmitError(null);
 
-    login({ identifier: email, password, remember_me: remember })
+    login({ identifier: email, password, remember_me: remember }) //login function from api.ts
       .then((res) => {
         localStorage.setItem("token", res.access);
         navigate("/home");
@@ -55,10 +57,10 @@ export function SeekerLogin() {
           setSubmitError("Something went wrong. Please try again.");
         }
       })
-      .finally(() => setSubmitting(false));
+      .finally(() => setSubmitting(false)); //reset submitting state
   }
-
-  return (
+    
+  return ( 
     <form onSubmit={handleSubmit} className="space-y-6">
       <header className="flex items-center justify-between">
         <button type="button" className="text-gray-500" onClick={() => navigate(-1)}>

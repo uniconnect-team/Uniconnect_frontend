@@ -58,7 +58,7 @@ export function Signup() {
 
     setSubmitting(true);
 
-    register({
+    register({ //trimmed values are sent to the backend
       full_name: fullName.trim(),
       phone: phone.trim(),
       email: email.trim(),
@@ -78,7 +78,7 @@ export function Signup() {
       .finally(() => setSubmitting(false));
   }
 
-  return (
+  return ( 
     <form onSubmit={handleSubmit} className="space-y-6">
       <header className="flex items-center justify-between">
         <button type="button" className="text-gray-500" onClick={() => navigate(-1)}>
@@ -123,7 +123,7 @@ export function Signup() {
           error={errors.email}
           autoComplete="email"
         />
-        <FormField
+        <FormField //password visibility toggle added
           label="Password"
           name="password"
           type={showPassword ? "text" : "password"}
@@ -140,7 +140,7 @@ export function Signup() {
       </div>
 
       {formError ? <FeedbackMessage variant="error" message={formError} /> : null}
-
+   
       <button
         type="submit"
         className={`w-full h-12 rounded-full font-semibold transition focus:outline-none focus:ring-2 focus:ring-[color:var(--brand)] focus:ring-offset-2 ${
@@ -154,7 +154,7 @@ export function Signup() {
 
       <div className="text-center space-y-2 text-sm">
         <p className="text-gray-500">
-          Already have a Molly account?{' '}
+          Already have an account?{' '}
           <Link to="/login/seeker" className="text-[var(--brand)] font-medium">
             Enter here
           </Link>
