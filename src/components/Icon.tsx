@@ -66,6 +66,14 @@ const icons = {
       <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z" />
     </svg>
   ),
+  users: (props) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="8.5" cy="7" r="4" />
+      <path d="M20 8a4 4 0 1 0-3.36 6" />
+      <path d="M20 21v-2a4.001 4.001 0 0 0-2.62-3.77" />
+    </svg>
+  ),
   bed: (props) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
       <path d="M2 20v-8a2 2 0 0 1 2-2h12a4 4 0 0 1 4 4v6" />
@@ -85,6 +93,51 @@ const icons = {
       <path d="M17 11h.01" />
       <path d="M17 15h.01" />
       <path d="M17 19h.01" />
+    </svg>
+  ),
+  "messages-square": (props) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M18 14v4a2 2 0 0 1-2 2H6l-4 4V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2" />
+      <path d="M22 12h-6" />
+      <path d="M19 9v6" />
+    </svg>
+  ),
+  briefcase: (props) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+      <path d="M16 3H8a2 2 0 0 0-2 2v2h12V5a2 2 0 0 0-2-2Z" />
+      <path d="M12 12h0" />
+    </svg>
+  ),
+  calendar: (props) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+      <path d="M16 2v4" />
+      <path d="M8 2v4" />
+      <path d="M3 10h18" />
+      <path d="M8 14h0" />
+      <path d="M12 14h0" />
+      <path d="M16 14h0" />
+    </svg>
+  ),
+  sparkles: (props) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M12 3v4" />
+      <path d="M10 5h4" />
+      <path d="M17 16v4" />
+      <path d="M15 18h4" />
+      <path d="M3 10v4" />
+      <path d="M1 12h4" />
+      <path d="M19 3l2 2-2 2-2-2 2-2Z" />
+      <path d="M19 11l2 2-2 2-2-2 2-2Z" />
+      <path d="M7 19l2 2-2 2-2-2 2-2Z" />
+    </svg>
+  ),
+  globe: (props) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M2 12h20" />
+      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z" />
     </svg>
   ),
   "alert-circle": (props) => (
