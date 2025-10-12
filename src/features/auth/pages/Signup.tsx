@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { FormField } from "../../../components/FormField";
 import { FeedbackMessage } from "../../../components/FeedbackMessage";
 import { Icon } from "../../../components/Icon";
+import type { IconName } from "../../../components/Icon";
 import { ApiError, register } from "../../../lib/api";
 import { validateEmail, validateLength, validatePassword } from "../../../lib/validators";
 
@@ -26,6 +27,15 @@ export function Signup() {
     const passwordValid = !validatePassword(password);
     return fullNameValid && phoneValid && emailValid && passwordValid;
   }, [fullName, phone, email, password]);
+
+  const heroIcons: IconName[] = [
+    "users",
+    "building",
+    "messages-square",
+    "briefcase",
+    "calendar",
+    "sparkles",
+  ];
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -88,7 +98,24 @@ export function Signup() {
         <span className="w-5" aria-hidden="true" />
       </header>
 
-      <div className="w-full h-36 bg-gray-100 rounded-2xl" aria-hidden="true" />
+      <div
+        className="relative w-full h-36 overflow-hidden rounded-2xl bg-gradient-to-br from-[color:var(--brand)] via-indigo-500 to-purple-500"
+        aria-hidden="true"
+      >
+        <div className="grid h-full grid-cols-3 gap-4 p-5 text-white/80">
+          {heroIcons.map((icon, index) => (
+            <div
+              key={`${icon}-${index}`}
+              className="flex items-center justify-center rounded-xl bg-white/10 backdrop-blur-sm"
+            >
+              <Icon name={icon} className="h-8 w-8" />
+            </div>
+          ))}
+        </div>
+        <div className="pointer-events-none absolute -right-8 -bottom-12 text-white/10">
+          <Icon name="globe" className="h-40 w-40" />
+        </div>
+      </div>
 
       <div className="space-y-4">
         <FormField
