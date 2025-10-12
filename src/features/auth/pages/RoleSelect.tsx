@@ -16,7 +16,7 @@ const cards: Array<{ label: string; path: string; icon: IconName }> = [
   },
 ];
 
-export function RoleSelect() { //role selection page
+export function RoleSelect() { //role selection page, branch here for exceptions
   const navigate = useNavigate();
 
   return (

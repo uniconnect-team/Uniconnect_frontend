@@ -12,4 +12,4 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   </React.StrictMode>
 );
 
-//setting up react
+//setting up react and testing 
