@@ -24,7 +24,7 @@ export type TokenLoginResponse = {
     full_name: string;
     phone: string;
     role: Role;
-    is_verified: boolean;
+    is_verified?: boolean;
   };
 };
 

@@ -217,8 +217,8 @@ export function SeekerLogin() {
       <div className="text-center space-y-2 text-sm">
         <p className="text-gray-500">
           Don’t have an account?{' '}
-          <Link to="/signup" className="font-semibold text-[color:var(--brand)]">
-            Sign up now
+          <Link to="/verify-email" className="text-[var(--brand)] font-medium">
+            Sign up Now
           </Link>
         </p>
         <a href="#" className="font-semibold text-[color:var(--brand)]">
