@@ -1,5 +1,5 @@
-import { FormEvent, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FormField } from "../../../components/FormField";
 import { FeedbackMessage } from "../../../components/FeedbackMessage";
 import { Icon } from "../../../components/Icon";
@@ -9,14 +9,27 @@ import { validateEmail, validateLength, validatePassword } from "../../../lib/va
 
 export function Signup() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const verifiedEmailFromState = useMemo(() => {
+    const state = location.state as { verifiedEmail?: string } | null;
+    return state?.verifiedEmail?.trim() ?? "";
+  }, [location.state]);
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(verifiedEmailFromState);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (verifiedEmailFromState) {
+      setEmail(verifiedEmailFromState);
+    }
+  }, [verifiedEmailFromState]);
+
+  const emailLocked = Boolean(verifiedEmailFromState);
 
   const isValid = useMemo(() => {
     const trimmedFullName = fullName.trim();
@@ -149,7 +162,13 @@ export function Signup() {
           iconLeft={<Icon name="mail" />}
           error={errors.email}
           autoComplete="email"
+          readOnly={emailLocked}
         />
+        {emailLocked ? (
+          <p className="text-xs text-emerald-600">
+            Verified university email: {email}
+          </p>
+        ) : null}
         <FormField //password visibility toggle added
           label="Password"
           name="password"

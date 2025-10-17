@@ -24,5 +24,19 @@ export type TokenLoginResponse = {
     full_name: string;
     phone: string;
     role: Role;
+    is_verified?: boolean;
   };
+};
+
+export type VerificationRequestBody = {
+  identifier: string;
+};
+
+export type VerificationConfirmBody = {
+  identifier: string;
+  code: string;
+};
+
+export type VerificationResponse = {
+  detail: string;
 };
