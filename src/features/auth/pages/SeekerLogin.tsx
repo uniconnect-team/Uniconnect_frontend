@@ -3,10 +3,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FormField } from "../../../components/FormField";
 import { FeedbackMessage } from "../../../components/FeedbackMessage";
 import { Icon } from "../../../components/Icon";
-import { ApiError, login } from "../../../lib/api";
+import { ApiError, login, requestVerificationCode } from "../../../lib/api";
 import { validateEmail } from "../../../lib/validators";
-
-//login page , input email and password, validates
 
 export function SeekerLogin() {
   const navigate = useNavigate();
@@ -19,8 +17,10 @@ export function SeekerLogin() {
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [verificationPrompt, setVerificationPrompt] = useState(false);
+  const [resending, setResending] = useState(false);
 
-  useEffect(() => { //show success message after redirect from another page
+  useEffect(() => {
     const toastMessage = (location.state as { toast?: string } | null)?.toast;
     if (toastMessage) {
       setSuccessMessage(toastMessage);
@@ -32,50 +32,108 @@ export function SeekerLogin() {
     return !validateEmail(email) && password.length > 0;
   }, [email, password]);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {  //handling form submission
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSuccessMessage(null);
+    setVerificationPrompt(false);
     const emailError = validateEmail(email);
     const passwordError = password ? null : "Password is required";
 
     setErrors({ email: emailError, password: passwordError });
 
-    if (emailError || passwordError) return; //if there are errors, do not proceed
+    if (emailError || passwordError) return;
 
     setSubmitting(true);
     setSubmitError(null);
 
-    login({ identifier: email, password, remember_me: remember }) //login function from api.ts
+    login({ identifier: email.trim(), password, remember_me: remember })
       .then((res) => {
         localStorage.setItem("token", res.access);
         navigate("/home");
       })
       .catch((error: unknown) => {
         if (error instanceof ApiError) {
-          setSubmitError(error.message || "Login failed");
+          const message = error.message || "Login failed";
+          if (error.status === 403 || message.toLowerCase().includes("verify")) {
+            setSubmitError("Please verify your UniConnect account before logging in.");
+            setVerificationPrompt(true);
+          } else {
+            setSubmitError(message);
+          }
         } else {
           setSubmitError("Something went wrong. Please try again.");
         }
       })
-      .finally(() => setSubmitting(false)); //reset submitting state
+      .finally(() => setSubmitting(false));
   }
-    
-  return ( 
-    <form onSubmit={handleSubmit} className="space-y-6">
+
+  function handleResend() {
+    const trimmedEmail = email.trim();
+    const emailError = validateEmail(trimmedEmail);
+    if (emailError) {
+      setErrors((prev) => ({ ...prev, email: emailError }));
+      return;
+    }
+
+    setResending(true);
+    setSubmitError(null);
+
+    requestVerificationCode({ identifier: trimmedEmail })
+      .then((response) => {
+        setSuccessMessage(response.detail || "Verification code sent! Check your inbox.");
+      })
+      .catch((error: unknown) => {
+        if (error instanceof ApiError) {
+          setSubmitError(error.message || "We couldn't resend the code just now.");
+        } else {
+          setSubmitError("We couldn't resend the code just now. Try again later.");
+        }
+      })
+      .finally(() => {
+        setVerificationPrompt(true);
+        setResending(false);
+      });
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-8">
       <header className="flex items-center justify-between">
-        <button type="button" className="text-gray-500" onClick={() => navigate(-1)}>
-          <Icon name="chevron-left" />
+        <button type="button" className="flex items-center gap-2 text-sm text-gray-500" onClick={() => navigate(-1)}>
+          <Icon name="chevron-left" /> Back
         </button>
-        <h1 className="text-lg font-semibold text-center flex-1">Dormitory Seeker Login</h1>
+        <span className="text-xs font-semibold uppercase tracking-widest text-[color:var(--brand)]">Seeker login</span>
         <span className="w-5" aria-hidden="true" />
       </header>
+
+      <div className="rounded-3xl bg-gray-50 p-6">
+        <div className="space-y-3">
+          <h1 className="text-2xl font-semibold text-[color:var(--ink)]">Welcome back, seeker</h1>
+          <p className="text-sm text-gray-500">
+            Sign in to pick up where you left off, manage saved dorms, and message verified owners in real time.
+          </p>
+        </div>
+        <div className="mt-6 grid grid-cols-3 gap-4 text-center text-xs text-gray-500">
+          <div className="rounded-2xl bg-white p-3 shadow-sm">
+            <p className="font-semibold text-[color:var(--ink)]">120+</p>
+            <p>Dorm partners</p>
+          </div>
+          <div className="rounded-2xl bg-white p-3 shadow-sm">
+            <p className="font-semibold text-[color:var(--ink)]">3k</p>
+            <p>Happy seekers</p>
+          </div>
+          <div className="rounded-2xl bg-white p-3 shadow-sm">
+            <p className="font-semibold text-[color:var(--ink)]">24/7</p>
+            <p>Support</p>
+          </div>
+        </div>
+      </div>
 
       <div className="space-y-4">
         <FormField
           label="Email"
           name="email"
           type="email"
-          placeholder="Enter Your Email"
+          placeholder="Enter your email"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           iconLeft={<Icon name="mail" />}
@@ -86,7 +144,7 @@ export function SeekerLogin() {
           label="Password"
           name="password"
           type={showPassword ? "text" : "password"}
-          placeholder="Enter Your Password"
+          placeholder="Enter your password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           iconLeft={<Icon name="lock" />}
@@ -103,19 +161,52 @@ export function SeekerLogin() {
             checked={remember}
             onChange={(event) => setRemember(event.target.checked)}
           />
-          Remember Password
+          Remember me on this device
         </label>
       </div>
 
       <div className="space-y-3">
         {successMessage ? <FeedbackMessage variant="success" message={successMessage} /> : null}
-        {submitError ? <FeedbackMessage variant="error" message={submitError} /> : null}
+        {submitError ? (
+          <FeedbackMessage
+            variant="error"
+            message={submitError}
+            action={
+              verificationPrompt ? (
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      navigate("/verify", {
+                        state: {
+                          identifier: email.trim(),
+                          redirectTo: "/login/seeker",
+                        },
+                      })
+                    }
+                    className="inline-flex items-center gap-2 rounded-full bg-[color:var(--brand)] px-3 py-1.5 text-xs font-semibold text-white shadow"
+                  >
+                    <Icon name="sparkles" className="h-4 w-4" /> Enter verification code
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleResend}
+                    className="text-xs font-medium text-[color:var(--brand)] hover:underline"
+                    disabled={resending}
+                  >
+                    {resending ? "Sending..." : "Resend code"}
+                  </button>
+                </div>
+              ) : null
+            }
+          />
+        ) : null}
       </div>
 
       <button
         type="submit"
-        className={`w-full h-12 rounded-full font-semibold transition focus:outline-none focus:ring-2 focus:ring-[color:var(--brand)] focus:ring-offset-2 ${
-          isValid && !submitting ? "bg-[color:var(--brand)] text-white" : "bg-gray-200 text-gray-400"
+        className={`w-full h-12 rounded-full bg-gradient-to-r from-[color:var(--brand)] via-emerald-500 to-sky-500 text-white font-semibold shadow-lg shadow-emerald-500/30 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[color:var(--brand)] ${
+          isValid && !submitting ? "hover:brightness-110" : "opacity-60"
         }`}
         disabled={!isValid || submitting}
         aria-busy={submitting}
@@ -130,8 +221,8 @@ export function SeekerLogin() {
             Sign up Now
           </Link>
         </p>
-        <a href="#" className="text-[var(--brand)] font-medium">
-          Forget Password?
+        <a href="#" className="font-semibold text-[color:var(--brand)]">
+          Forgot password?
         </a>
       </div>
     </form>

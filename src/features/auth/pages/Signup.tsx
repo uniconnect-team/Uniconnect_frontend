@@ -4,8 +4,28 @@ import { FormField } from "../../../components/FormField";
 import { FeedbackMessage } from "../../../components/FeedbackMessage";
 import { Icon } from "../../../components/Icon";
 import type { IconName } from "../../../components/Icon";
-import { ApiError, register } from "../../../lib/api";
+import { ApiError, register, requestVerificationCode } from "../../../lib/api";
 import { validateEmail, validateLength, validatePassword } from "../../../lib/validators";
+
+const heroIcons: IconName[] = ["users", "building", "messages-square", "briefcase", "calendar", "sparkles"];
+
+const highlights: Array<{ icon: IconName; title: string; description: string }> = [
+  {
+    icon: "sparkles",
+    title: "Verified spaces",
+    description: "Every listing is vetted with the UniConnect community standards before it goes live.",
+  },
+  {
+    icon: "users",
+    title: "Roommate ready",
+    description: "Share preferences and get paired with people who match your lifestyle instantly.",
+  },
+  {
+    icon: "globe",
+    title: "Campus connected",
+    description: "Stay close to campus life with curated dorms, amenities, and events in your area.",
+  },
+];
 
 export function Signup() {
   const navigate = useNavigate();
@@ -41,28 +61,23 @@ export function Signup() {
     return fullNameValid && phoneValid && emailValid && passwordValid;
   }, [fullName, phone, email, password]);
 
-  const heroIcons: IconName[] = [
-    "users",
-    "building",
-    "messages-square",
-    "briefcase",
-    "calendar",
-    "sparkles",
-  ];
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const fullNameError = validateLength(fullName.trim(), {
+    const trimmedFullName = fullName.trim();
+    const trimmedPhone = phone.trim();
+    const trimmedEmail = email.trim();
+
+    const fullNameError = validateLength(trimmedFullName, {
       min: 1,
       max: 80,
       message: "Full name must be between 1 and 80 characters",
     });
-    const phoneError = validateLength(phone.trim(), {
+    const phoneError = validateLength(trimmedPhone, {
       min: 6,
       max: 18,
       message: "Phone number must be 6-18 characters",
     });
-    const emailError = validateEmail(email);
+    const emailError = validateEmail(trimmedEmail);
     const passwordError = validatePassword(password ?? "");
 
     const nextErrors = {
@@ -81,58 +96,81 @@ export function Signup() {
 
     setSubmitting(true);
 
-    register({ //trimmed values are sent to the backend
-      full_name: fullName.trim(),
-      phone: phone.trim(),
-      email: email.trim(),
-      password,
-      role: "SEEKER",
-    })
-      .then(() => {
-        navigate("/login/seeker", { state: { toast: "Account created" } });
-      })
-      .catch((error: unknown) => {
-        if (error instanceof ApiError) {
-          setFormError(error.message || "Unable to sign up");
-        } else {
-          setFormError("Unable to sign up. Please try again.");
+    try {
+      await register({
+        full_name: trimmedFullName,
+        phone: trimmedPhone,
+        email: trimmedEmail,
+        password,
+        role: "SEEKER",
+      });
+
+      let toast = "Account created! Enter the code we just sent.";
+      try {
+        const response = await requestVerificationCode({ identifier: trimmedEmail });
+        toast = response.detail || toast;
+      } catch (error: unknown) {
+        if (error instanceof ApiError && error.message) {
+          toast = `${toast} (${error.message})`;
         }
-      })
-      .finally(() => setSubmitting(false));
+      }
+
+      navigate("/verify", {
+        replace: true,
+        state: {
+          identifier: trimmedEmail,
+          toast,
+          redirectTo: "/login/seeker",
+        },
+      });
+    } catch (error: unknown) {
+      if (error instanceof ApiError) {
+        setFormError(error.message || "Unable to sign up");
+      } else {
+        setFormError("Unable to sign up. Please try again.");
+      }
+    } finally {
+      setSubmitting(false);
+    }
   }
 
-  return ( 
-    <form onSubmit={handleSubmit} className="space-y-6">
+  return (
+    <form onSubmit={handleSubmit} className="space-y-8">
       <header className="flex items-center justify-between">
-        <button type="button" className="text-gray-500" onClick={() => navigate(-1)}>
+        <button type="button" className="flex items-center gap-2 text-sm text-gray-500" onClick={() => navigate(-1)}>
           <Icon name="chevron-left" />
+          Back
         </button>
-        <h1 className="text-lg font-semibold text-center flex-1">Sign up Account</h1>
+        <span className="text-xs font-medium uppercase tracking-widest text-[color:var(--brand)]">Create account</span>
         <span className="w-5" aria-hidden="true" />
       </header>
 
-      <div
-        className="relative w-full h-36 overflow-hidden rounded-2xl bg-gradient-to-br from-[color:var(--brand)] via-indigo-500 to-purple-500"
-        aria-hidden="true"
-      >
-        <div className="grid h-full grid-cols-3 gap-4 p-5 text-white/80">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[color:var(--brand)] via-emerald-500 to-sky-500 p-6 text-white shadow-xl">
+        <div className="space-y-2">
+          <p className="text-xs uppercase tracking-[0.3em] text-white/70">Welcome to UniConnect</p>
+          <h1 className="text-2xl font-semibold">Let's unlock housing made for students</h1>
+          <p className="text-sm text-white/80">
+            One profile gives you access to curated dorms, smart roommate matching, and verified owners.
+          </p>
+        </div>
+        <div className="mt-5 grid grid-cols-3 gap-4 text-white/90">
           {heroIcons.map((icon, index) => (
             <div
               key={`${icon}-${index}`}
-              className="flex items-center justify-center rounded-xl bg-white/10 backdrop-blur-sm"
+              className="flex h-16 items-center justify-center rounded-2xl bg-white/15 backdrop-blur-sm"
             >
               <Icon name={icon} className="h-8 w-8" />
             </div>
           ))}
         </div>
-        <div className="pointer-events-none absolute -right-8 -bottom-12 text-white/10">
-          <Icon name="globe" className="h-40 w-40" />
+        <div className="pointer-events-none absolute -right-12 -bottom-16 text-white/20">
+          <Icon name="globe" className="h-48 w-48" />
         </div>
       </div>
 
       <div className="space-y-4">
         <FormField
-          label="Full Name"
+          label="Full name"
           name="fullName"
           placeholder="Enter your full name"
           value={fullName}
@@ -142,7 +180,7 @@ export function Signup() {
           autoComplete="name"
         />
         <FormField
-          label="Phone Number"
+          label="Phone number"
           name="phone"
           type="tel"
           placeholder="Enter your phone number"
@@ -186,11 +224,11 @@ export function Signup() {
       </div>
 
       {formError ? <FeedbackMessage variant="error" message={formError} /> : null}
-   
+
       <button
         type="submit"
-        className={`w-full h-12 rounded-full font-semibold transition focus:outline-none focus:ring-2 focus:ring-[color:var(--brand)] focus:ring-offset-2 ${
-          isValid && !submitting ? "bg-[color:var(--brand)] text-white" : "bg-gray-200 text-gray-400"
+        className={`w-full h-12 rounded-full bg-gradient-to-r from-[color:var(--brand)] via-emerald-500 to-sky-500 text-white font-semibold shadow-lg shadow-emerald-500/40 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[color:var(--brand)] ${
+          isValid && !submitting ? "hover:brightness-110" : "opacity-60"
         }`}
         disabled={!isValid || submitting}
         aria-busy={submitting}
@@ -198,17 +236,31 @@ export function Signup() {
         {submitting ? "Creating..." : "Sign up"}
       </button>
 
-      <div className="text-center space-y-2 text-sm">
-        <p className="text-gray-500">
+      <div className="space-y-3 text-sm text-gray-500">
+        <p className="text-center">
           Already have an account?{' '}
-          <Link to="/login/seeker" className="text-[var(--brand)] font-medium">
+          <Link to="/login/seeker" className="font-semibold text-[color:var(--brand)]">
             Enter here
           </Link>
         </p>
-        <a href="#" className="text-gray-400">
+        <a href="#" className="block text-center text-gray-400 hover:text-gray-500">
           Privacy Policy
         </a>
       </div>
+
+      <ul className="space-y-3 rounded-3xl bg-gray-50 p-5 text-sm text-gray-600">
+        {highlights.map((highlight) => (
+          <li key={highlight.title} className="flex items-start gap-3">
+            <span className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-2xl bg-[color:var(--brand)]/10 text-[color:var(--brand)]">
+              <Icon name={highlight.icon} />
+            </span>
+            <div>
+              <p className="font-medium text-[color:var(--ink)]">{highlight.title}</p>
+              <p>{highlight.description}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
     </form>
   );
 }
