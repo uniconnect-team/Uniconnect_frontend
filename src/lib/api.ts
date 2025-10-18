@@ -1,10 +1,10 @@
 import type {
   LoginBody,
   RegisterBody,
-  StudentVerificationConfirmBody,
-  StudentVerificationConfirmResponse,
-  StudentVerificationRequestBody,
-  StudentVerificationResponse,
+  SeekerVerificationConfirmBody,
+  SeekerVerificationConfirmResponse,
+  SeekerVerificationRequestBody,
+  SeekerVerificationResponse,
   TokenLoginResponse,
 } from "./types";
 
@@ -106,15 +106,15 @@ export async function register(body: RegisterBody) { //when a new user signs up
   });
 }
 
-export async function requestStudentVerification(body: StudentVerificationRequestBody) {
-  return api<StudentVerificationResponse>("/api/v1/auth/student/verification/request/", {
+export async function requestSeekerVerification(body: SeekerVerificationRequestBody) {
+  return api<SeekerVerificationResponse>("/api/v1/auth/student/verification/request/", {
     method: "POST",
     body: JSON.stringify(body),
   });
 }
 
-export async function confirmStudentVerification(body: StudentVerificationConfirmBody) {
-  return api<StudentVerificationConfirmResponse>("/api/v1/auth/student/verification/confirm/", {
+export async function confirmSeekerVerification(body: SeekerVerificationConfirmBody) {
+  return api<SeekerVerificationConfirmResponse>("/api/v1/auth/student/verification/confirm/", {
     method: "POST",
     body: JSON.stringify(body),
   });

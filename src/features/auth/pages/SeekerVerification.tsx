@@ -3,13 +3,13 @@ import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { FormField } from "../../../components/FormField";
 import { FeedbackMessage } from "../../../components/FeedbackMessage";
 import { Icon } from "../../../components/Icon";
-import { ApiError, confirmStudentVerification, register, requestStudentVerification } from "../../../lib/api";
+import { ApiError, confirmSeekerVerification, register, requestSeekerVerification } from "../../../lib/api";
 
 type SignupVerificationState = {
   fullName: string;
   phone: string;
   password: string;
-  email: string;
+  universityEmail: string;
   studentId: string;
   verificationToken: string;
 };
@@ -47,7 +47,7 @@ export function SeekerVerification() {
   }
 
   const details = locationState;
-  const maskedEmail = maskEmail(details.email);
+  const maskedEmail = maskEmail(details.universityEmail);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -62,7 +62,7 @@ export function SeekerVerification() {
 
     const trimmedCode = code.trim();
 
-    confirmStudentVerification({
+    confirmSeekerVerification({
       verification_token: verificationToken,
       code: trimmedCode,
     })
@@ -74,10 +74,10 @@ export function SeekerVerification() {
         return register({
           full_name: details.fullName,
           phone: details.phone,
-          email: details.email,
+          email: details.universityEmail,
           password: details.password,
           role: "SEEKER",
-          university_email: details.email,
+          university_email: details.universityEmail,
           student_id: details.studentId,
         });
       })
@@ -102,8 +102,8 @@ export function SeekerVerification() {
     setError(null);
     setInfo(null);
 
-    requestStudentVerification({
-      email: details.email,
+    requestSeekerVerification({
+      email: details.universityEmail,
       student_id: details.studentId,
     })
       .then(({ verification_token }) => {
@@ -126,14 +126,14 @@ export function SeekerVerification() {
         <button type="button" className="text-gray-500" onClick={() => navigate(-1)}>
           <Icon name="chevron-left" />
         </button>
-        <h1 className="text-lg font-semibold text-center flex-1">Verify student email</h1>
+        <h1 className="text-lg font-semibold text-center flex-1">Verify university email</h1>
         <span className="w-5" aria-hidden="true" />
       </header>
 
       <div className="space-y-3 rounded-2xl bg-gray-50 p-5 text-center">
         <Icon name="mail" className="mx-auto h-8 w-8 text-[color:var(--brand)]" />
         <div className="space-y-1">
-          <p className="text-sm font-medium text-[color:var(--ink)]">Check your inbox</p>
+          <p className="text-sm font-medium text-[color:var(--ink)]">Check your university inbox</p>
           <p className="text-sm text-gray-500">
             We sent a 6-digit verification code to <span className="font-medium">{maskedEmail}</span>.
           </p>
