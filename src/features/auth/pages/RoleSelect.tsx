@@ -14,6 +14,11 @@ const cards: Array<{ label: string; path: string; icon: IconName }> = [
     path: "/login/owner",
     icon: "building",
   },
+  {
+    label: "University Student",
+    path: "/login/university",
+    icon: "users",
+  },
 ];
 
 export function RoleSelect() { //role selection page, branch here for exceptions
