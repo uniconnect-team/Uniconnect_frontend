@@ -47,8 +47,11 @@ export function SeekerLogin() {
 
     login({ identifier: email, password, remember_me: remember }) //login function from api.ts
       .then((res) => {
+        const homePath = res.default_home_path || "/seekers/home";
         localStorage.setItem("token", res.access);
-        navigate("/home");
+        localStorage.setItem("refreshToken", res.refresh);
+        localStorage.setItem("defaultHomePath", homePath);
+        navigate(homePath);
       })
       .catch((error: unknown) => {
         if (error instanceof ApiError) {

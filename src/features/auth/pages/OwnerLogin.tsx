@@ -42,8 +42,11 @@ export function OwnerLogin() {
 
     login({ identifier: phone.trim(), password, remember_me: remember })
       .then((res) => {
+        const homePath = res.default_home_path || "/owners/dashboard";
         localStorage.setItem("token", res.access);
-        navigate("/home");
+        localStorage.setItem("refreshToken", res.refresh);
+        localStorage.setItem("defaultHomePath", homePath);
+        navigate(homePath);
       })
       .catch((error: unknown) => {
         if (error instanceof ApiError) {

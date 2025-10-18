@@ -27,15 +27,21 @@ export type LoginBody = {
   remember_me?: boolean;
 };
 
-export type TokenLoginResponse = {
+export type AuthenticatedUser = {
+  id: number;
+  username: string;
+  email: string;
+  full_name: string;
+  phone: string;
+  role: Role;
+  default_home_path: string;
+};
+
+export type AuthResponse = {
   access: string;
   refresh: string;
-  user: {
-    id: number;
-    username: string;
-    email: string;
-    full_name: string;
-    phone: string;
-    role: Role;
-  };
+  default_home_path: string;
+  user: AuthenticatedUser;
 };
+
+export type TokenLoginResponse = AuthResponse;
