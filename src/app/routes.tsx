@@ -1,4 +1,4 @@
-import { useRoutes } from "react-router-dom";
+import { Navigate, useRoutes } from "react-router-dom";
 import { Layout } from "./Layout";
 import { RoleSelect } from "../features/auth/pages/RoleSelect";
 import { SeekerLogin } from "../features/auth/pages/SeekerLogin";
@@ -21,10 +21,11 @@ export function AppRoutes() {
         { path: "/", element: <RoleSelect /> },
         { path: "/login/seeker", element: <SeekerLogin /> },
         { path: "/login/owner", element: <OwnerLogin /> },
-        { path: "/login/university", element: <UniversityLogin /> },
+        { path: "/login/university", element: <Navigate to="/login/seeker" replace /> },
         { path: "/signup", element: <Signup /> },
         { path: "/signup/verify", element: <SeekerVerification /> },
         { path: "/home", element: <Home /> },
+        { path: "*", element: <Navigate to="/" replace /> },
       ],
     },
   ]);
