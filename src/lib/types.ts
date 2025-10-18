@@ -10,21 +10,21 @@ export type RegisterBody = {
   student_id?: string;
 };
 
-export type StudentVerificationRequestBody = {
+export type SeekerVerificationRequestBody = {
   email: string;
   student_id: string;
 };
 
-export type StudentVerificationResponse = {
+export type SeekerVerificationResponse = {
   verification_token: string;
 };
 
-export type StudentVerificationConfirmBody = {
+export type SeekerVerificationConfirmBody = {
   verification_token: string;
   code: string;
 };
 
-export type StudentVerificationConfirmResponse = {
+export type SeekerVerificationConfirmResponse = {
   verified: boolean;
 };
 

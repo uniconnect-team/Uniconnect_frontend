@@ -4,7 +4,7 @@ import { FormField } from "../../../components/FormField";
 import { FeedbackMessage } from "../../../components/FeedbackMessage";
 import { Icon } from "../../../components/Icon";
 import type { IconName } from "../../../components/Icon";
-import { ApiError, requestStudentVerification } from "../../../lib/api";
+import { ApiError, requestSeekerVerification } from "../../../lib/api";
 import { validateEmail, validateLength, validatePassword } from "../../../lib/validators";
 
 export function Signup() {
@@ -12,7 +12,7 @@ export function Signup() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [studentEmail, setStudentEmail] = useState("");
+  const [universityEmail, setUniversityEmail] = useState("");
   const [studentId, setStudentId] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string | null>>({});
@@ -22,15 +22,15 @@ export function Signup() {
   const isValid = useMemo(() => {
     const trimmedFullName = fullName.trim();
     const trimmedPhone = phone.trim();
-    const trimmedStudentEmail = studentEmail.trim();
+    const trimmedUniversityEmail = universityEmail.trim();
     const fullNameValid = trimmedFullName.length >= 1 && trimmedFullName.length <= 80;
     const phoneValid = trimmedPhone.length >= 6 && trimmedPhone.length <= 18;
-    const studentEmailValid =
-      !validateEmail(trimmedStudentEmail) && /(\.edu|\.ac)(\.[a-z]+)?$/i.test(trimmedStudentEmail);
+    const universityEmailValid =
+      !validateEmail(trimmedUniversityEmail) && /(\.edu|\.ac)(\.[a-z]+)?$/i.test(trimmedUniversityEmail);
     const passwordValid = !validatePassword(password);
     const studentIdValid = studentId.trim().length >= 4 && studentId.trim().length <= 20;
-    return fullNameValid && phoneValid && studentEmailValid && passwordValid && studentIdValid;
-  }, [fullName, phone, password, studentEmail, studentId]);
+    return fullNameValid && phoneValid && universityEmailValid && passwordValid && studentIdValid;
+  }, [fullName, phone, password, universityEmail, studentId]);
 
   const heroIcons: IconName[] = [
     "users",
@@ -45,7 +45,7 @@ export function Signup() {
     event.preventDefault();
     const trimmedFullName = fullName.trim();
     const trimmedPhone = phone.trim();
-    const trimmedStudentEmail = studentEmail.trim();
+    const trimmedUniversityEmail = universityEmail.trim();
     const fullNameError = validateLength(trimmedFullName, {
       min: 1,
       max: 80,
@@ -57,10 +57,10 @@ export function Signup() {
       message: "Phone number must be 6-18 characters",
     });
     const passwordError = validatePassword(password ?? "");
-    const studentEmailError = (() => {
-      const baseError = validateEmail(trimmedStudentEmail);
+    const universityEmailError = (() => {
+      const baseError = validateEmail(trimmedUniversityEmail);
       if (baseError) return baseError;
-      return /(\.edu|\.ac)(\.[a-z]+)?$/i.test(trimmedStudentEmail)
+      return /(\.edu|\.ac)(\.[a-z]+)?$/i.test(trimmedUniversityEmail)
         ? null
         : "Use your student email (e.g. name@school.edu)";
     })();
@@ -75,21 +75,21 @@ export function Signup() {
       fullName: fullNameError,
       phone: phoneError,
       password: passwordError,
-      studentEmail: studentEmailError,
+      universityEmail: universityEmailError,
       studentId: studentIdError,
     };
 
     setErrors(nextErrors);
     setFormError(null);
 
-    if (fullNameError || phoneError || passwordError || studentEmailError || studentIdError) {
+    if (fullNameError || phoneError || passwordError || universityEmailError || studentIdError) {
       return;
     }
 
     setSubmitting(true);
 
-    requestStudentVerification({
-      email: trimmedStudentEmail,
+    requestSeekerVerification({
+      email: trimmedUniversityEmail,
       student_id: trimmedStudentId,
     })
       .then(({ verification_token }) => {
@@ -98,7 +98,7 @@ export function Signup() {
             fullName: trimmedFullName,
             phone: trimmedPhone,
             password,
-            email: trimmedStudentEmail,
+            universityEmail: trimmedUniversityEmail,
             studentId: trimmedStudentId,
             verificationToken: verification_token,
           },
@@ -120,7 +120,7 @@ export function Signup() {
         <button type="button" className="text-gray-500" onClick={() => navigate(-1)}>
           <Icon name="chevron-left" />
         </button>
-        <h1 className="text-lg font-semibold text-center flex-1">Sign up Account</h1>
+        <h1 className="text-lg font-semibold text-center flex-1">Dormitory Seeker Sign Up</h1>
         <span className="w-5" aria-hidden="true" />
       </header>
 
@@ -183,21 +183,21 @@ export function Signup() {
 
       <div className="space-y-4 rounded-2xl bg-gray-50 p-4">
         <div className="space-y-1">
-          <p className="font-medium text-[color:var(--ink)]">Student Verification</p>
+          <p className="font-medium text-[color:var(--ink)]">University Verification</p>
           <p className="text-sm text-gray-500">
-            Use your official student credentials. We&apos;ll email you a verification code on the next
-            step.
+            Use your official university credentials. We&apos;ll email you a verification code on the
+            next step.
           </p>
         </div>
         <FormField
-          label="Student Email"
-          name="studentEmail"
+          label="University Email"
+          name="universityEmail"
           type="email"
-          placeholder="Enter your student email"
-          value={studentEmail}
-          onChange={(event) => setStudentEmail(event.target.value)}
+          placeholder="Enter your university email"
+          value={universityEmail}
+          onChange={(event) => setUniversityEmail(event.target.value)}
           iconLeft={<Icon name="graduation-cap" />}
-          error={errors.studentEmail}
+          error={errors.universityEmail}
           autoComplete="email"
         />
         <FormField
