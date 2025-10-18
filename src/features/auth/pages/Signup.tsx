@@ -7,15 +7,42 @@ import type { IconName } from "../../../components/Icon";
 import { ApiError, register } from "../../../lib/api";
 import { validateEmail, validateLength, validatePassword } from "../../../lib/validators";
 
+const LEBANESE_UNIVERSITY_DOMAINS = new Set(
+  [
+    "mail.aub.edu",
+    "aub.edu.lb",
+    "lau.edu.lb",
+    "net.usj.edu.lb",
+    "usj.edu.lb",
+    "balamand.edu.lb",
+    "usek.edu.lb",
+    "ndu.edu.lb",
+    "haigazian.edu.lb",
+    "ul.edu.lb",
+    "students.liu.edu.lb",
+    "mubs.edu.lb",
+    "aust.edu.lb",
+    "bau.edu.lb",
+    "rhu.edu.lb",
+    "pu.edu.lb",
+    "lcu.edu.lb",
+    "cityu.edu.lb",
+    "mu.edu.lb",
+    "aul.edu.lb",
+  ].map((domain) => domain.toLowerCase())
+);
+
 function getLebaneseUniversityEmailError(value: string) {
   const trimmed = value.trim();
   const formatError = validateEmail(trimmed);
   if (formatError) return formatError;
 
   const [, domain = ""] = trimmed.toLowerCase().split("@");
-  return domain.endsWith(".edu.lb")
+  if (!domain) return "Enter a Lebanese university email";
+
+  return LEBANESE_UNIVERSITY_DOMAINS.has(domain)
     ? null
-    : "Use your Lebanese university email (e.g. name@aub.edu.lb)";
+    : "Use your Lebanese university email (e.g. name@mail.aub.edu or name@lau.edu.lb)";
 }
 
 function isLebaneseUniversityEmail(value: string) {
@@ -41,9 +68,9 @@ export function Signup() {
     if (!trimmed.includes("@")) return null;
     const [, domain = ""] = trimmed.toLowerCase().split("@");
     if (!domain) return null;
-    return domain.endsWith(".edu.lb")
+    return LEBANESE_UNIVERSITY_DOMAINS.has(domain)
       ? null
-      : "Use your Lebanese university email (e.g. name@aub.edu.lb)";
+      : "Use your Lebanese university email (e.g. name@mail.aub.edu or name@lau.edu.lb)";
   }, [universityEmail]);
 
   const isValid = useMemo(() => {
