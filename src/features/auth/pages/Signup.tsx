@@ -4,8 +4,16 @@ import { FormField } from "../../../components/FormField";
 import { FeedbackMessage } from "../../../components/FeedbackMessage";
 import { Icon } from "../../../components/Icon";
 import type { IconName } from "../../../components/Icon";
-import { ApiError, requestSeekerVerification } from "../../../lib/api";
+import { ApiError, register } from "../../../lib/api";
 import { validateEmail, validateLength, validatePassword } from "../../../lib/validators";
+
+function isLebaneseUniversityEmail(value: string) {
+  const trimmed = value.trim().toLowerCase();
+  if (!trimmed) return false;
+  if (validateEmail(trimmed)) return false;
+  const [, domain = ""] = trimmed.split("@");
+  return domain.endsWith(".edu.lb");
+}
 
 export function Signup() {
   const navigate = useNavigate();
@@ -25,8 +33,7 @@ export function Signup() {
     const trimmedUniversityEmail = universityEmail.trim();
     const fullNameValid = trimmedFullName.length >= 1 && trimmedFullName.length <= 80;
     const phoneValid = trimmedPhone.length >= 6 && trimmedPhone.length <= 18;
-    const universityEmailValid =
-      !validateEmail(trimmedUniversityEmail) && /(\.edu|\.ac)(\.[a-z]+)?$/i.test(trimmedUniversityEmail);
+    const universityEmailValid = isLebaneseUniversityEmail(trimmedUniversityEmail);
     const passwordValid = !validatePassword(password);
     const studentIdValid = studentId.trim().length >= 4 && studentId.trim().length <= 20;
     return fullNameValid && phoneValid && universityEmailValid && passwordValid && studentIdValid;
@@ -60,9 +67,9 @@ export function Signup() {
     const universityEmailError = (() => {
       const baseError = validateEmail(trimmedUniversityEmail);
       if (baseError) return baseError;
-      return /(\.edu|\.ac)(\.[a-z]+)?$/i.test(trimmedUniversityEmail)
+      return isLebaneseUniversityEmail(trimmedUniversityEmail)
         ? null
-        : "Use your student email (e.g. name@school.edu)";
+        : "Use your Lebanese university email (e.g. name@aub.edu.lb)";
     })();
     const trimmedStudentId = studentId.trim();
     const studentIdError = validateLength(trimmedStudentId, {
@@ -88,27 +95,26 @@ export function Signup() {
 
     setSubmitting(true);
 
-    requestSeekerVerification({
+    register({
+      full_name: trimmedFullName,
+      phone: trimmedPhone,
       email: trimmedUniversityEmail,
+      password,
+      role: "SEEKER",
+      university_email: trimmedUniversityEmail,
       student_id: trimmedStudentId,
     })
-      .then(({ verification_token }) => {
-        navigate("/signup/verify", {
-          state: {
-            fullName: trimmedFullName,
-            phone: trimmedPhone,
-            password,
-            universityEmail: trimmedUniversityEmail,
-            studentId: trimmedStudentId,
-            verificationToken: verification_token,
-          },
+      .then(() => {
+        navigate("/login/seeker", {
+          replace: true,
+          state: { toast: "Account created" },
         });
       })
       .catch((error: unknown) => {
         if (error instanceof ApiError) {
-          setFormError(error.message || "Unable to send verification code");
+          setFormError(error.message || "Unable to create account");
         } else {
-          setFormError("Unable to send verification code. Please try again.");
+          setFormError("Unable to create account. Please try again.");
         }
       })
       .finally(() => setSubmitting(false));
@@ -185,8 +191,8 @@ export function Signup() {
         <div className="space-y-1">
           <p className="font-medium text-[color:var(--ink)]">University Verification</p>
           <p className="text-sm text-gray-500">
-            Use your official university credentials. We&apos;ll email you a verification code on the
-            next step.
+            Use your official Lebanese university credentials. We&apos;ll automatically confirm the domain
+            before creating your account.
           </p>
         </div>
         <FormField
