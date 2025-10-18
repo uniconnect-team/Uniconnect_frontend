@@ -5,7 +5,8 @@ import { SeekerLogin } from "../features/auth/pages/SeekerLogin";
 import { OwnerLogin } from "../features/auth/pages/OwnerLogin";
 import { Signup } from "../features/auth/pages/Signup";
 import { OwnerSignup } from "../features/auth/pages/OwnerSignup";
-import { Home } from "../features/home/pages/Home";
+import { OwnerDashboard } from "../features/home/pages/OwnerDashboard";
+import { SeekerHome } from "../features/home/pages/SeekerHome";
 import { Landing } from "../features/home/pages/Landing";
 
 // Older builds referenced a dedicated UniversityLogin component which has since
@@ -26,7 +27,9 @@ export function AppRoutes() {
         { path: "/login/university", element: <Navigate to="/login/seeker" replace /> },
         { path: "/signup", element: <Signup /> },
         { path: "/signup/owner", element: <OwnerSignup /> },
-        { path: "/home", element: <Home /> },
+        { path: "/seekers/home", element: <SeekerHome /> },
+        { path: "/owners/dashboard", element: <OwnerDashboard /> },
+        { path: "/home", element: <Navigate to="/seekers/home" replace /> },
         { path: "/role-select", element: <Navigate to="/choose-role" replace /> },
         { path: "*", element: <Navigate to="/" replace /> },
       ],
