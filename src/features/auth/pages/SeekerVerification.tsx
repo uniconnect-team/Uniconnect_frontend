@@ -1,5 +1,5 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { FormEvent, useMemo, useState } from "react";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { FormField } from "../../../components/FormField";
 import { FeedbackMessage } from "../../../components/FeedbackMessage";
 import { Icon } from "../../../components/Icon";
@@ -37,19 +37,13 @@ export function SeekerVerification() {
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!locationState) {
-      navigate("/signup", { replace: true });
-    }
-  }, [locationState, navigate]);
-
   const isValid = useMemo(() => {
     const trimmed = code.trim();
     return /^\d{6}$/.test(trimmed);
   }, [code]);
 
   if (!locationState) {
-    return null;
+    return <Navigate to="/signup" replace />;
   }
 
   const details = locationState;
