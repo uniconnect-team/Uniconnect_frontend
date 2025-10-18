@@ -15,6 +15,7 @@ export function AppRoutes() {
         { path: "/", element: <RoleSelect /> },
         { path: "/login/seeker", element: <SeekerLogin /> },
         { path: "/login/owner", element: <OwnerLogin /> },
+        { path: "/login/university", element: <UniversityLogin /> },
         { path: "/signup", element: <Signup /> },
         { path: "/signup/verify", element: <SeekerVerification /> },
         { path: "/home", element: <Home /> },
