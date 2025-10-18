@@ -7,12 +7,19 @@ import type { IconName } from "../../../components/Icon";
 import { ApiError, register } from "../../../lib/api";
 import { validateEmail, validateLength, validatePassword } from "../../../lib/validators";
 
+function getLebaneseUniversityEmailError(value: string) {
+  const trimmed = value.trim();
+  const formatError = validateEmail(trimmed);
+  if (formatError) return formatError;
+
+  const [, domain = ""] = trimmed.toLowerCase().split("@");
+  return domain.endsWith(".edu.lb")
+    ? null
+    : "Use your Lebanese university email (e.g. name@aub.edu.lb)";
+}
+
 function isLebaneseUniversityEmail(value: string) {
-  const trimmed = value.trim().toLowerCase();
-  if (!trimmed) return false;
-  if (validateEmail(trimmed)) return false;
-  const [, domain = ""] = trimmed.split("@");
-  return domain.endsWith(".edu.lb");
+  return !getLebaneseUniversityEmailError(value);
 }
 
 export function Signup() {
@@ -27,15 +34,30 @@ export function Signup() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
+  const passwordLiveError = password ? validatePassword(password) : null;
+  const universityEmailDomainError = useMemo(() => {
+    const trimmed = universityEmail.trim();
+    if (!trimmed) return null;
+    if (!trimmed.includes("@")) return null;
+    const [, domain = ""] = trimmed.toLowerCase().split("@");
+    if (!domain) return null;
+    return domain.endsWith(".edu.lb")
+      ? null
+      : "Use your Lebanese university email (e.g. name@aub.edu.lb)";
+  }, [universityEmail]);
+
   const isValid = useMemo(() => {
     const trimmedFullName = fullName.trim();
     const trimmedPhone = phone.trim();
     const trimmedUniversityEmail = universityEmail.trim();
+    const trimmedStudentId = studentId.trim();
+
     const fullNameValid = trimmedFullName.length >= 1 && trimmedFullName.length <= 80;
     const phoneValid = trimmedPhone.length >= 6 && trimmedPhone.length <= 18;
     const universityEmailValid = isLebaneseUniversityEmail(trimmedUniversityEmail);
     const passwordValid = !validatePassword(password);
-    const studentIdValid = studentId.trim().length >= 4 && studentId.trim().length <= 20;
+    const studentIdValid = trimmedStudentId.length >= 4 && trimmedStudentId.length <= 20;
+
     return fullNameValid && phoneValid && universityEmailValid && passwordValid && studentIdValid;
   }, [fullName, phone, password, universityEmail, studentId]);
 
@@ -53,6 +75,7 @@ export function Signup() {
     const trimmedFullName = fullName.trim();
     const trimmedPhone = phone.trim();
     const trimmedUniversityEmail = universityEmail.trim();
+    const normalizedUniversityEmail = trimmedUniversityEmail.toLowerCase();
     const fullNameError = validateLength(trimmedFullName, {
       min: 1,
       max: 80,
@@ -64,13 +87,7 @@ export function Signup() {
       message: "Phone number must be 6-18 characters",
     });
     const passwordError = validatePassword(password ?? "");
-    const universityEmailError = (() => {
-      const baseError = validateEmail(trimmedUniversityEmail);
-      if (baseError) return baseError;
-      return isLebaneseUniversityEmail(trimmedUniversityEmail)
-        ? null
-        : "Use your Lebanese university email (e.g. name@aub.edu.lb)";
-    })();
+    const universityEmailError = getLebaneseUniversityEmailError(trimmedUniversityEmail);
     const trimmedStudentId = studentId.trim();
     const studentIdError = validateLength(trimmedStudentId, {
       min: 4,
@@ -98,10 +115,10 @@ export function Signup() {
     register({
       full_name: trimmedFullName,
       phone: trimmedPhone,
-      email: trimmedUniversityEmail,
+      email: normalizedUniversityEmail,
       password,
       role: "SEEKER",
-      university_email: trimmedUniversityEmail,
+      university_email: normalizedUniversityEmail,
       student_id: trimmedStudentId,
     })
       .then(() => {
@@ -182,7 +199,7 @@ export function Signup() {
           iconRight={<Icon name={showPassword ? "eye-off" : "eye"} />}
           onRightIconClick={() => setShowPassword((prev) => !prev)}
           rightIconAriaLabel={showPassword ? "Hide password" : "Show password"}
-          error={errors.password}
+          error={errors.password ?? passwordLiveError}
           autoComplete="new-password"
         />
       </div>
@@ -203,7 +220,7 @@ export function Signup() {
           value={universityEmail}
           onChange={(event) => setUniversityEmail(event.target.value)}
           iconLeft={<Icon name="graduation-cap" />}
-          error={errors.universityEmail}
+          error={errors.universityEmail ?? universityEmailDomainError}
           autoComplete="email"
         />
         <FormField
