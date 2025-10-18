@@ -1,4 +1,4 @@
-export type Role = "SEEKER" | "OWNER";
+export type Role = "SEEKER" | "OWNER" | "UNIVERSITY_STUDENT";
 
 export type RegisterBody = {
   full_name: string;
