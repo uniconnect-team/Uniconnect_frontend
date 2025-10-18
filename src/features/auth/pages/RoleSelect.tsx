@@ -9,14 +9,14 @@ export function RoleSelect() { //role selection page, branch here for exceptions
       <button
         type="button"
         className="text-gray-500 flex items-center gap-2"
-        onClick={() => navigate(-1)}
+        onClick={() => navigate("/")}
       >
         <Icon name="chevron-left" className="w-5 h-5" />
         <span className="text-sm">Back</span>
       </button>
       <div className="space-y-2">
-        <h1 className="text-2xl font-semibold">Welcome</h1>
-        <p className="text-sm text-gray-500">I want to login as</p>
+        <h1 className="text-2xl font-semibold">Choose your experience</h1>
+        <p className="text-sm text-gray-500">Continue as</p>
       </div>
       <div className="space-y-4">
         <button
