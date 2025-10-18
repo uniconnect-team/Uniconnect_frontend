@@ -1,4 +1,4 @@
-import type { LoginBody, RegisterBody, TokenLoginResponse } from "./types";
+import type { LoginBody, OwnerRegisterBody, RegisterBody, TokenLoginResponse } from "./types";
 
 export const API_URL = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
 
@@ -93,6 +93,20 @@ export async function register(body: RegisterBody) { //when a new user signs up
     phone: string;
     role: RegisterBody["role"];
   }>("/api/v1/auth/register/", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function registerOwner(body: OwnerRegisterBody) {
+  return api<{
+    id: number;
+    username: string;
+    email: string;
+    full_name: string;
+    phone: string;
+    role: "OWNER";
+  }>("/api/users/register-owner/", {
     method: "POST",
     body: JSON.stringify(body),
   });
