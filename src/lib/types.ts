@@ -15,7 +15,10 @@ export type OwnerRegisterBody = {
   phone: string;
   email: string;
   password: string;
-  access_code: string;
+  properties: {
+    name: string;
+    location: string;
+  }[];
 };
 
 export type LoginBody = {
