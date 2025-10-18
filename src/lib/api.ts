@@ -107,14 +107,14 @@ export async function register(body: RegisterBody) { //when a new user signs up
 }
 
 export async function requestSeekerVerification(body: SeekerVerificationRequestBody) {
-  return api<SeekerVerificationResponse>("/api/v1/auth/student/verification/request/", {
+  return api<SeekerVerificationResponse>("/api/v1/auth/seeker/verification/request/", {
     method: "POST",
     body: JSON.stringify(body),
   });
 }
 
 export async function confirmSeekerVerification(body: SeekerVerificationConfirmBody) {
-  return api<SeekerVerificationConfirmResponse>("/api/v1/auth/student/verification/confirm/", {
+  return api<SeekerVerificationConfirmResponse>("/api/v1/auth/seeker/verification/confirm/", {
     method: "POST",
     body: JSON.stringify(body),
   });
