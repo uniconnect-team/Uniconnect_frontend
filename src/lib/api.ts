@@ -106,7 +106,7 @@ export async function registerOwner(body: OwnerRegisterBody) {
     full_name: string;
     phone: string;
     role: "OWNER";
-  }>("/api/users/register-owner/", {
+  }>("/api/v1/auth/register-owner/", {
     method: "POST",
     body: JSON.stringify(body),
   });

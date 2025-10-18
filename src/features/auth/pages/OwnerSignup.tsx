@@ -7,13 +7,20 @@ import type { IconName } from "../../../components/Icon";
 import { ApiError, registerOwner } from "../../../lib/api";
 import { validateEmail, validateLength, validatePassword, validateRequired } from "../../../lib/validators";
 
+type PropertyFormState = {
+  name: string;
+  location: string;
+};
+
 export function OwnerSignup() {
   const navigate = useNavigate();
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [accessCode, setAccessCode] = useState("");
+  const [properties, setProperties] = useState<PropertyFormState[]>([
+    { name: "", location: "" },
+  ]);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -25,16 +32,47 @@ export function OwnerSignup() {
     const trimmedFullName = fullName.trim();
     const trimmedPhone = phone.trim();
     const trimmedEmail = email.trim();
-    const trimmedAccessCode = accessCode.trim();
+    const trimmedProperties = properties.map(({ name, location }) => ({
+      name: name.trim(),
+      location: location.trim(),
+    }));
 
     const fullNameValid = trimmedFullName.length >= 1 && trimmedFullName.length <= 80;
     const phoneValid = trimmedPhone.length >= 6 && trimmedPhone.length <= 18;
     const emailValid = !validateEmail(trimmedEmail);
     const passwordValid = !validatePassword(password);
-    const accessCodeValid = trimmedAccessCode.length > 0;
+    const hasProperty = trimmedProperties.length > 0;
+    const propertiesValid =
+      hasProperty &&
+      trimmedProperties.every((property) => property.name.length > 0 && property.location.length > 0);
 
-    return fullNameValid && phoneValid && emailValid && passwordValid && accessCodeValid;
-  }, [fullName, phone, email, password, accessCode]);
+    return fullNameValid && phoneValid && emailValid && passwordValid && propertiesValid;
+  }, [fullName, phone, email, password, properties]);
+
+  function updateProperty(index: number, field: keyof PropertyFormState, value: string) {
+    setProperties((prev) => {
+      const next = [...prev];
+      next[index] = { ...next[index], [field]: value };
+      return next;
+    });
+  }
+
+  function addProperty() {
+    setProperties((prev) => [...prev, { name: "", location: "" }]);
+  }
+
+  function removeProperty(index: number) {
+    setProperties((prev) => prev.filter((_, propertyIndex) => propertyIndex !== index));
+    setErrors((prev) => {
+      const next = { ...prev };
+      Object.keys(next).forEach((key) => {
+        if (key.startsWith("propertyName-") || key.startsWith("propertyLocation-")) {
+          delete next[key];
+        }
+      });
+      return next;
+    });
+  }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -43,7 +81,10 @@ export function OwnerSignup() {
     const trimmedPhone = phone.trim();
     const trimmedEmail = email.trim();
     const normalizedEmail = trimmedEmail.toLowerCase();
-    const trimmedAccessCode = accessCode.trim();
+    const normalizedProperties = properties.map(({ name, location }) => ({
+      name: name.trim(),
+      location: location.trim(),
+    }));
 
     const fullNameError = validateLength(trimmedFullName, {
       min: 1,
@@ -57,20 +98,31 @@ export function OwnerSignup() {
     });
     const emailError = validateEmail(trimmedEmail);
     const passwordError = validatePassword(password ?? "");
-    const accessCodeError = validateRequired(trimmedAccessCode, "Access code is required");
+    const propertyErrors: Record<string, string | null> = {};
+    normalizedProperties.forEach((property, index) => {
+      propertyErrors[`propertyName-${index}`] = validateRequired(
+        property.name,
+        "Property name is required",
+      );
+      propertyErrors[`propertyLocation-${index}`] = validateRequired(
+        property.location,
+        "Location is required",
+      );
+    });
 
     const nextErrors = {
       fullName: fullNameError,
       phone: phoneError,
       email: emailError,
       password: passwordError,
-      accessCode: accessCodeError,
-    } as const;
+      ...propertyErrors,
+    } satisfies Record<string, string | null>;
 
     setErrors(nextErrors);
     setFormError(null);
 
-    if (fullNameError || phoneError || emailError || passwordError || accessCodeError) {
+    const hasErrors = Object.values(nextErrors).some(Boolean);
+    if (hasErrors) {
       return;
     }
 
@@ -81,7 +133,7 @@ export function OwnerSignup() {
       phone: trimmedPhone,
       email: normalizedEmail,
       password,
-      access_code: trimmedAccessCode,
+      properties: normalizedProperties,
     })
       .then(() => {
         navigate("/login/owner", {
@@ -172,16 +224,57 @@ export function OwnerSignup() {
           error={errors.password ?? passwordLiveError}
           autoComplete="new-password"
         />
-        <FormField
-          label="Owner Access Code"
-          name="accessCode"
-          placeholder="Enter the provided access code"
-          value={accessCode}
-          onChange={(event) => setAccessCode(event.target.value)}
-          iconLeft={<Icon name="key" />}
-          error={errors.accessCode}
-          autoComplete="off"
-        />
+        <div className="space-y-3">
+          <div>
+            <h2 className="text-sm font-medium text-[color:var(--ink)]">Properties you manage</h2>
+            <p className="text-xs text-gray-500">Add at least one dormitory with its location.</p>
+          </div>
+          <div className="space-y-4">
+            {properties.map((property, index) => (
+              <div key={index} className="rounded-2xl bg-gray-50 p-4 space-y-3">
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <span className="font-medium text-[color:var(--ink-light)]">Dormitory {index + 1}</span>
+                  {properties.length > 1 ? (
+                    <button
+                      type="button"
+                      onClick={() => removeProperty(index)}
+                      className="text-[color:var(--ink-light)] hover:text-red-500 font-medium"
+                    >
+                      Remove
+                    </button>
+                  ) : null}
+                </div>
+                <FormField
+                  label="Property name"
+                  name={`property-name-${index}`}
+                  placeholder="e.g. Sunrise Dorms"
+                  value={property.name}
+                  onChange={(event) => updateProperty(index, "name", event.target.value)}
+                  iconLeft={<Icon name="building" />}
+                  error={errors[`propertyName-${index}`] ?? null}
+                  autoComplete="off"
+                />
+                <FormField
+                  label="Location"
+                  name={`property-location-${index}`}
+                  placeholder="City or address"
+                  value={property.location}
+                  onChange={(event) => updateProperty(index, "location", event.target.value)}
+                  iconLeft={<Icon name="globe" />}
+                  error={errors[`propertyLocation-${index}`] ?? null}
+                  autoComplete="off"
+                />
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={addProperty}
+            className="text-sm font-medium text-[color:var(--brand)] hover:underline"
+          >
+            + Add another property
+          </button>
+        </div>
       </div>
 
       {formError ? <FeedbackMessage variant="error" message={formError} /> : null}
