@@ -1,4 +1,12 @@
-import type { LoginBody, RegisterBody, TokenLoginResponse } from "./types";
+import type {
+  LoginBody,
+  RegisterBody,
+  StudentVerificationConfirmBody,
+  StudentVerificationConfirmResponse,
+  StudentVerificationRequestBody,
+  StudentVerificationResponse,
+  TokenLoginResponse,
+} from "./types";
 
 export const API_URL = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
 
@@ -93,6 +101,20 @@ export async function register(body: RegisterBody) { //when a new user signs up
     phone: string;
     role: RegisterBody["role"];
   }>("/api/v1/auth/register/", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function requestStudentVerification(body: StudentVerificationRequestBody) {
+  return api<StudentVerificationResponse>("/api/v1/auth/student/verification/request/", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function confirmStudentVerification(body: StudentVerificationConfirmBody) {
+  return api<StudentVerificationConfirmResponse>("/api/v1/auth/student/verification/confirm/", {
     method: "POST",
     body: JSON.stringify(body),
   });
