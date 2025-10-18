@@ -6,6 +6,26 @@ export type RegisterBody = {
   email: string;
   password: string;
   role: Role;
+  university_email?: string;
+  student_id?: string;
+};
+
+export type SeekerVerificationRequestBody = {
+  email: string;
+  student_id: string;
+};
+
+export type SeekerVerificationResponse = {
+  verification_token: string;
+};
+
+export type SeekerVerificationConfirmBody = {
+  verification_token: string;
+  code: string;
+};
+
+export type SeekerVerificationConfirmResponse = {
+  verified: boolean;
 };
 
 export type LoginBody = {
