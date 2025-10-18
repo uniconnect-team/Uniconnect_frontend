@@ -4,15 +4,16 @@ import { FormField } from "../../../components/FormField";
 import { FeedbackMessage } from "../../../components/FeedbackMessage";
 import { Icon } from "../../../components/Icon";
 import type { IconName } from "../../../components/Icon";
-import { ApiError, register } from "../../../lib/api";
+import { ApiError, requestStudentVerification } from "../../../lib/api";
 import { validateEmail, validateLength, validatePassword } from "../../../lib/validators";
 
 export function Signup() {
   const navigate = useNavigate();
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [studentEmail, setStudentEmail] = useState("");
+  const [studentId, setStudentId] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string | null>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -21,12 +22,15 @@ export function Signup() {
   const isValid = useMemo(() => {
     const trimmedFullName = fullName.trim();
     const trimmedPhone = phone.trim();
+    const trimmedStudentEmail = studentEmail.trim();
     const fullNameValid = trimmedFullName.length >= 1 && trimmedFullName.length <= 80;
     const phoneValid = trimmedPhone.length >= 6 && trimmedPhone.length <= 18;
-    const emailValid = !validateEmail(email);
+    const studentEmailValid =
+      !validateEmail(trimmedStudentEmail) && /(\.edu|\.ac)(\.[a-z]+)?$/i.test(trimmedStudentEmail);
     const passwordValid = !validatePassword(password);
-    return fullNameValid && phoneValid && emailValid && passwordValid;
-  }, [fullName, phone, email, password]);
+    const studentIdValid = studentId.trim().length >= 4 && studentId.trim().length <= 20;
+    return fullNameValid && phoneValid && studentEmailValid && passwordValid && studentIdValid;
+  }, [fullName, phone, password, studentEmail, studentId]);
 
   const heroIcons: IconName[] = [
     "users",
@@ -39,50 +43,72 @@ export function Signup() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const fullNameError = validateLength(fullName.trim(), {
+    const trimmedFullName = fullName.trim();
+    const trimmedPhone = phone.trim();
+    const trimmedStudentEmail = studentEmail.trim();
+    const fullNameError = validateLength(trimmedFullName, {
       min: 1,
       max: 80,
       message: "Full name must be between 1 and 80 characters",
     });
-    const phoneError = validateLength(phone.trim(), {
+    const phoneError = validateLength(trimmedPhone, {
       min: 6,
       max: 18,
       message: "Phone number must be 6-18 characters",
     });
-    const emailError = validateEmail(email);
     const passwordError = validatePassword(password ?? "");
+    const studentEmailError = (() => {
+      const baseError = validateEmail(trimmedStudentEmail);
+      if (baseError) return baseError;
+      return /(\.edu|\.ac)(\.[a-z]+)?$/i.test(trimmedStudentEmail)
+        ? null
+        : "Use your student email (e.g. name@school.edu)";
+    })();
+    const trimmedStudentId = studentId.trim();
+    const studentIdError = validateLength(trimmedStudentId, {
+      min: 4,
+      max: 20,
+      message: "Student ID must be 4-20 characters",
+    });
 
     const nextErrors = {
       fullName: fullNameError,
       phone: phoneError,
-      email: emailError,
       password: passwordError,
+      studentEmail: studentEmailError,
+      studentId: studentIdError,
     };
 
     setErrors(nextErrors);
     setFormError(null);
 
-    if (fullNameError || phoneError || emailError || passwordError) {
+    if (fullNameError || phoneError || passwordError || studentEmailError || studentIdError) {
       return;
     }
 
     setSubmitting(true);
 
-    register({ //trimmed values are sent to the backend
-      full_name: fullName.trim(),
-      phone: phone.trim(),
-      email: email.trim(),
-      password,
-      role: "SEEKER",
+    requestStudentVerification({
+      email: trimmedStudentEmail,
+      student_id: trimmedStudentId,
     })
-      .then(() => {
-        navigate("/login/seeker", { state: { toast: "Account created" } });
+      .then(({ verification_token }) => {
+        navigate("/signup/verify", {
+          state: {
+            fullName: trimmedFullName,
+            phone: trimmedPhone,
+            password,
+            email: trimmedStudentEmail,
+            studentId: trimmedStudentId,
+            verificationToken: verification_token,
+          },
+        });
       })
       .catch((error: unknown) => {
         if (error instanceof ApiError) {
-          setFormError(error.message || "Unable to sign up");
+          setFormError(error.message || "Unable to send verification code");
         } else {
-          setFormError("Unable to sign up. Please try again.");
+          setFormError("Unable to send verification code. Please try again.");
         }
       })
       .finally(() => setSubmitting(false));
@@ -139,17 +165,6 @@ export function Signup() {
           error={errors.phone}
           autoComplete="tel"
         />
-        <FormField
-          label="Email"
-          name="email"
-          type="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          iconLeft={<Icon name="mail" />}
-          error={errors.email}
-          autoComplete="email"
-        />
         <FormField //password visibility toggle added
           label="Password"
           name="password"
@@ -163,6 +178,37 @@ export function Signup() {
           rightIconAriaLabel={showPassword ? "Hide password" : "Show password"}
           error={errors.password}
           autoComplete="new-password"
+        />
+      </div>
+
+      <div className="space-y-4 rounded-2xl bg-gray-50 p-4">
+        <div className="space-y-1">
+          <p className="font-medium text-[color:var(--ink)]">Student Verification</p>
+          <p className="text-sm text-gray-500">
+            Use your official student credentials. We&apos;ll email you a verification code on the next
+            step.
+          </p>
+        </div>
+        <FormField
+          label="Student Email"
+          name="studentEmail"
+          type="email"
+          placeholder="Enter your student email"
+          value={studentEmail}
+          onChange={(event) => setStudentEmail(event.target.value)}
+          iconLeft={<Icon name="graduation-cap" />}
+          error={errors.studentEmail}
+          autoComplete="email"
+        />
+        <FormField
+          label="Student ID"
+          name="studentId"
+          placeholder="Enter your student ID"
+          value={studentId}
+          onChange={(event) => setStudentId(event.target.value)}
+          iconLeft={<Icon name="id-card" />}
+          error={errors.studentId}
+          autoComplete="off"
         />
       </div>
 
