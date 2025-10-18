@@ -18,6 +18,14 @@ const icons = {
       <path d="M7 11V7a5 5 0 0 1 10 0v4" />
     </svg>
   ),
+  key: (props) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <circle cx="7" cy="15" r="5" />
+      <path d="M21 3 10.5 13.5" />
+      <path d="m12 12 3 3" />
+      <path d="m16 8 3 3" />
+    </svg>
+  ),
   eye: (props) => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
       <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" />
@@ -72,6 +80,21 @@ const icons = {
       <circle cx="8.5" cy="7" r="4" />
       <path d="M20 8a4 4 0 1 0-3.36 6" />
       <path d="M20 21v-2a4.001 4.001 0 0 0-2.62-3.77" />
+    </svg>
+  ),
+  "graduation-cap": (props) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M22 10 12 4 2 10l10 6 10-6Z" />
+      <path d="M6 12v5c3 3 9 3 12 0v-5" />
+      <path d="M22 10v6" />
+    </svg>
+  ),
+  "id-card": (props) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <path d="M10 9h4" />
+      <path d="M10 13h8" />
+      <circle cx="6.5" cy="12" r="2.5" />
     </svg>
   ),
   bed: (props) => (
