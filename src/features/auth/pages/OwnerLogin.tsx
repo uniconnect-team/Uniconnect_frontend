@@ -1,5 +1,5 @@
-import { FormEvent, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FormField } from "../../../components/FormField";
 import { FeedbackMessage } from "../../../components/FeedbackMessage";
 import { Icon } from "../../../components/Icon";
@@ -8,6 +8,7 @@ import { validateRequired } from "../../../lib/validators";
 //dorm owner log in page
 export function OwnerLogin() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -15,6 +16,15 @@ export function OwnerLogin() {
   const [remember, setRemember] = useState(false);
   const [errors, setErrors] = useState<{ phone?: string | null; password?: string | null }>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const toastMessage = (location.state as { toast?: string } | null)?.toast;
+    if (toastMessage) {
+      setSuccessMessage(toastMessage);
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location.pathname, location.state, navigate]);
 
   const isValid = useMemo(() => phone.trim().length > 0 && password.length > 0, [phone, password]);
 
@@ -92,7 +102,10 @@ export function OwnerLogin() {
         </label>
       </div>
 
-      {submitError ? <FeedbackMessage variant="error" message={submitError} /> : null}
+      <div className="space-y-3">
+        {successMessage ? <FeedbackMessage variant="success" message={successMessage} /> : null}
+        {submitError ? <FeedbackMessage variant="error" message={submitError} /> : null}
+      </div>
 
       <button
         type="submit"
@@ -108,7 +121,7 @@ export function OwnerLogin() {
       <div className="text-center space-y-2 text-sm">
         <p className="text-gray-500">
           Don’t have an account?{' '}
-          <Link to="/signup" className="text-[var(--brand)] font-medium">
+          <Link to="/signup/owner" className="text-[var(--brand)] font-medium">
             Sign up Now
           </Link>
         </p>

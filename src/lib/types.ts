@@ -10,6 +10,14 @@ export type RegisterBody = {
   student_id?: string;
 };
 
+export type OwnerRegisterBody = {
+  full_name: string;
+  phone: string;
+  email: string;
+  password: string;
+  access_code: string;
+};
+
 export type LoginBody = {
   identifier: string;
   password: string;
