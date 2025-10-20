@@ -5,7 +5,7 @@ import { FeedbackMessage } from "../../../components/FeedbackMessage";
 import { Icon } from "../../../components/Icon";
 import { ApiError, completeProfile, getMe } from "../../../lib/api";
 import { validateEmail, validateLength } from "../../../lib/validators";
-import type { OwnerProfileCompletionBody } from "../../../lib/types";
+import type { OwnerProfileCompletionBody, ProfileCompletionResponse } from "../../../lib/types";
 
 export function OwnerCompleteProfile() {
   const navigate = useNavigate();

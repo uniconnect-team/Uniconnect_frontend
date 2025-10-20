@@ -136,3 +136,10 @@ export async function completeProfile(body: SeekerProfileCompletionBody | OwnerP
 export async function getMe() {
   return api<AuthenticatedUser>("/api/v1/auth/me/");
 }
+
+export async function updateProfile(body: Partial<SeekerProfileCompletionBody> | Partial<OwnerProfileCompletionBody>) {
+  return api<AuthenticatedUser>("/api/v1/auth/update-profile/", {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+}

@@ -1,18 +1,27 @@
-// FILE: src/features/home/pages/SeekerHome.tsx
 import { Icon } from "../../../components/Icon";
+import { useNavigate } from "react-router-dom";
 import { BottomMenu } from "../../../components/BottomMenu";
 
-export function SeekerHome() {
+export function Roommate() {
+  const navigate = useNavigate();
+
   return (
     <>
       <div className="space-y-6 pb-20">
         <header className="flex items-center gap-3">
-          <h1 className="text-lg font-semibold">Seeker Home</h1>
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="p-2 rounded-full hover:bg-gray-100"
+          >
+            <Icon name="chevron-left" />
+          </button>
+          <h1 className="text-lg font-semibold">Roommate Finder</h1>
         </header>
         
         <div className="min-h-[60vh] flex items-center justify-center">
           <p className="text-sm text-gray-400">
-            Welcome! Your home dashboard will be here.
+            Roommate matching coming soon!
           </p>
         </div>
       </div>
