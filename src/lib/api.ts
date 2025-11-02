@@ -1,8 +1,18 @@
-import type { AuthResponse, LoginBody, OwnerRegisterBody, RegisterBody, TokenLoginResponse } from "./types";
+import type { 
+  AuthResponse, 
+  LoginBody, 
+  OwnerRegisterBody, 
+  RegisterBody, 
+  TokenLoginResponse,
+  SeekerProfileCompletionBody,
+  OwnerProfileCompletionBody,
+  ProfileCompletionResponse,
+  AuthenticatedUser,
+} from "./types";
 
 export const API_URL = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
 
-export class ApiError extends Error { //for errors
+export class ApiError extends Error {
   status: number;
   data: unknown;
 
@@ -42,12 +52,23 @@ function deriveErrorMessage(data: unknown): string | null {
   return null;
 }
 
-export async function api<T>(path: string, init?: RequestInit): Promise<T> { //making requests to backend
+export async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = localStorage.getItem("token");
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    ...(init?.headers || {}),
+  };
+  
+  if (token) {
+    (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
+  }
+
   const res = await fetch(`${API_URL}${path}`, {
-    headers: { "Content-Type": "application/json", ...(init?.headers || {}) },
+    headers,
     credentials: "omit",
     ...init,
   });
+
   if (!res.ok) {
     const text = await res.text();
     let parsed: unknown;
@@ -84,7 +105,7 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> { //m
   return res.json() as Promise<T>;
 }
 
-export async function register(body: RegisterBody) { //when a new user signs up
+export async function register(body: RegisterBody) {
   return api<AuthResponse>("/api/v1/auth/register/", {
     method: "POST",
     body: JSON.stringify(body),
@@ -98,9 +119,27 @@ export async function registerOwner(body: OwnerRegisterBody) {
   });
 }
 
-export async function login(body: LoginBody) { //when a user logs in
+export async function login(body: LoginBody) {
   return api<TokenLoginResponse>("/api/v1/auth/login/", {
     method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function completeProfile(body: SeekerProfileCompletionBody | OwnerProfileCompletionBody): Promise<ProfileCompletionResponse> {
+  return api<ProfileCompletionResponse>("/api/v1/auth/complete-profile/", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function getMe() {
+  return api<AuthenticatedUser>("/api/v1/auth/me/");
+}
+
+export async function updateProfile(body: Partial<SeekerProfileCompletionBody> | Partial<OwnerProfileCompletionBody>) {
+  return api<AuthenticatedUser>("/api/v1/auth/update-profile/", {
+    method: "PUT",
     body: JSON.stringify(body),
   });
 }

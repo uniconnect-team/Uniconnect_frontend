@@ -45,7 +45,25 @@ export function SeekerLogin() {
     setSubmitting(true);
     setSubmitError(null);
 
-    login({ identifier: email, password, remember_me: remember }) //login function from api.ts
+    login({ identifier: email, password, remember_me: remember })
+  .then((res) => {
+    localStorage.setItem("token", res.access);
+    localStorage.setItem("refreshToken", res.refresh);
+    
+    // Check if profile is complete
+    if (!res.user.profile_completed) {
+      // if not, redirect to profile completion
+      navigate("/complete-profile/seeker");
+    } else {
+      // Profile is complete, go to home
+      const homePath = res.default_home_path || "/seekers/home";
+      localStorage.setItem("defaultHomePath", homePath);
+      navigate(homePath);
+    }
+  })
+}
+
+    /*login({ identifier: email, password, remember_me: remember }) //login function from api.ts
       .then((res) => {
         const homePath = res.default_home_path || "/seekers/home";
         localStorage.setItem("token", res.access);
@@ -63,6 +81,7 @@ export function SeekerLogin() {
       .finally(() => setSubmitting(false)); //reset submitting state
   }
     
+  */
   return ( 
     <form onSubmit={handleSubmit} className="space-y-6">
       <header className="flex items-center justify-between">
