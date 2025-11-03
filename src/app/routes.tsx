@@ -7,7 +7,6 @@ import { Signup } from "../features/auth/pages/Signup";
 import { OwnerSignup } from "../features/auth/pages/OwnerSignup";
 import { SeekerCompleteProfile } from "../features/auth/pages/SeekerCompleteProfile";
 import { OwnerCompleteProfile } from "../features/auth/pages/OwnerCompleteProfile";
-import { OwnerDashboard } from "../features/home/pages/OwnerDashboard";
 import { SeekerHome } from "../features/home/pages/SeekerHome";
 import { Landing } from "../features/home/pages/Landing";
 import { Profile } from "../features/profile/pages/Profile";
@@ -16,6 +15,7 @@ import { Roommate } from "../features/roommate/pages/Roommate";
 import { Properties } from "../features/chat/pages/Properties";
 import { Favorites } from "../features/favorites/pages/Favorites";
 import { Transportation } from "../features/transportation/pages/Transportation";
+import { OwnerProperties } from "../features/properties/pages/OwnerProperties";
 
 export function AppRoutes() {
   const element = useRoutes([
@@ -32,7 +32,8 @@ export function AppRoutes() {
         { path: "/complete-profile/seeker", element: <SeekerCompleteProfile /> },
         { path: "/complete-profile/owner", element: <OwnerCompleteProfile /> },
         { path: "/seekers/home", element: <SeekerHome /> },
-        { path: "/owners/dashboard", element: <OwnerDashboard /> },
+        { path: "/owners/properties", element: <OwnerProperties /> },
+        { path: "/owners/dashboard", element: <Navigate to="/owners/properties" replace /> },
         { path: "/profile", element: <Profile /> },
         { path: "/notifications", element: <Notifications /> },
         { path: "/roommate", element: <Roommate /> },
