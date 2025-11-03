@@ -32,10 +32,11 @@ export function SeekerLogin() {
     return !validateEmail(email) && password.length > 0;
   }, [email, password]);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {  //handling form submission
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {  //handling form submission
     event.preventDefault();
     setSuccessMessage(null);
-    const emailError = validateEmail(email);
+    const trimmedEmail = email.trim();
+    const emailError = validateEmail(trimmedEmail);
     const passwordError = password ? null : "Password is required";
 
     setErrors({ email: emailError, password: passwordError });
@@ -45,43 +46,34 @@ export function SeekerLogin() {
     setSubmitting(true);
     setSubmitError(null);
 
-    login({ identifier: email, password, remember_me: remember })
-  .then((res) => {
-    localStorage.setItem("token", res.access);
-    localStorage.setItem("refreshToken", res.refresh);
-    
-    // Check if profile is complete
-    if (!res.user.profile_completed) {
-      // if not, redirect to profile completion
-      navigate("/complete-profile/seeker");
-    } else {
-      // Profile is complete, go to home
-      const homePath = res.default_home_path || "/seekers/home";
+    try {
+      const response = await login({ identifier: trimmedEmail, password, remember_me: remember });
+
+      localStorage.setItem("token", response.access);
+      localStorage.setItem("refreshToken", response.refresh);
+
+      if (!response.user.profile_completed) {
+        navigate("/complete-profile/seeker");
+        return;
+      }
+
+      const homePath =
+        response.user?.default_home_path ??
+        ("default_home_path" in response ? response.default_home_path : undefined) ??
+        "/seekers/home";
+
       localStorage.setItem("defaultHomePath", homePath);
       navigate(homePath);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setSubmitError(error.message || "Login failed");
+      } else {
+        setSubmitError("Something went wrong. Please try again.");
+      }
+    } finally {
+      setSubmitting(false);
     }
-  })
-}
-
-    /*login({ identifier: email, password, remember_me: remember }) //login function from api.ts
-      .then((res) => {
-        const homePath = res.default_home_path || "/seekers/home";
-        localStorage.setItem("token", res.access);
-        localStorage.setItem("refreshToken", res.refresh);
-        localStorage.setItem("defaultHomePath", homePath);
-        navigate(homePath);
-      })
-      .catch((error: unknown) => {
-        if (error instanceof ApiError) {
-          setSubmitError(error.message || "Login failed");
-        } else {
-          setSubmitError("Something went wrong. Please try again.");
-        }
-      })
-      .finally(() => setSubmitting(false)); //reset submitting state
   }
-    
-  */
   return ( 
     <form onSubmit={handleSubmit} className="space-y-6">
       <header className="flex items-center justify-between">
