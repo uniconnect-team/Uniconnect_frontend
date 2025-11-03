@@ -48,7 +48,7 @@ export function OwnerLogin() {
     if (!res.user.profile_completed) {
       navigate("/complete-profile/owner");
     } else {
-      const homePath = res.default_home_path || "/owners/dashboard";
+      const homePath = res.default_home_path || "/owners/properties";
       localStorage.setItem("defaultHomePath", homePath);
       navigate(homePath);
     }
@@ -57,7 +57,7 @@ export function OwnerLogin() {
 /*
     login({ identifier: phone.trim(), password, remember_me: remember })
       .then((res) => {
-        const homePath = res.default_home_path || "/owners/dashboard";
+        const homePath = res.default_home_path || "/owners/properties";
         localStorage.setItem("token", res.access);
         localStorage.setItem("refreshToken", res.refresh);
         localStorage.setItem("defaultHomePath", homePath);
