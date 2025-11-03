@@ -44,6 +44,8 @@ export function SeekerLogin() {
 
     setSubmitting(true);
     setSubmitError(null);
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
 
     login({ identifier: email, password, remember_me: remember })
   .then((res) => {
@@ -61,7 +63,16 @@ export function SeekerLogin() {
       navigate(homePath);
     }
   })
+  .catch((error: unknown) => {
+      if (error instanceof ApiError) {
+        setSubmitError(error.message || "Login failed");
+      } else {
+        setSubmitError("Something went wrong. Please try again.");
+      }
+    })
+    .finally(() => setSubmitting(false));
 }
+
 
     /*login({ identifier: email, password, remember_me: remember }) //login function from api.ts
       .then((res) => {

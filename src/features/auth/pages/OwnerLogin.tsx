@@ -32,7 +32,8 @@ export function OwnerLogin() {
     event.preventDefault();
     const phoneError = validateRequired(phone.trim(), "Phone number is required");
     const passwordError = password ? null : "Password is required";
-
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
     setErrors({ phone: phoneError, password: passwordError });
 
     if (phoneError || passwordError) return;
