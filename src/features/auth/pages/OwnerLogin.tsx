@@ -28,9 +28,10 @@ export function OwnerLogin() {
 
   const isValid = useMemo(() => phone.trim().length > 0 && password.length > 0, [phone, password]);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const phoneError = validateRequired(phone.trim(), "Phone number is required");
+    const trimmedPhone = phone.trim();
+    const phoneError = validateRequired(trimmedPhone, "Phone number is required");
     const passwordError = password ? null : "Password is required";
 
     setErrors({ phone: phoneError, password: passwordError });
@@ -39,40 +40,39 @@ export function OwnerLogin() {
 
     setSubmitting(true);
     setSubmitError(null);
-    login({ identifier: phone.trim(), password, remember_me: remember })
-  .then((res) => {
-    localStorage.setItem("token", res.access);
-    localStorage.setItem("refreshToken", res.refresh);
-    
-    // Check if profile is complete
-    if (!res.user.profile_completed) {
-      navigate("/complete-profile/owner");
-    } else {
-      const homePath = res.default_home_path || "/owners/dashboard";
+
+    try {
+      const response = await login({
+        identifier: trimmedPhone,
+        password,
+        remember_me: remember,
+      });
+
+      localStorage.setItem("token", response.access);
+      localStorage.setItem("refreshToken", response.refresh);
+
+      if (!response.user.profile_completed) {
+        navigate("/complete-profile/owner");
+        return;
+      }
+
+      const homePath =
+        response.user?.default_home_path ??
+        ("default_home_path" in response ? response.default_home_path : undefined) ??
+        "/owners/properties";
+
       localStorage.setItem("defaultHomePath", homePath);
       navigate(homePath);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setSubmitError(error.message || "Login failed");
+      } else {
+        setSubmitError("Something went wrong. Please try again.");
+      }
+    } finally {
+      setSubmitting(false);
     }
-  })
-}
-/*
-    login({ identifier: phone.trim(), password, remember_me: remember })
-      .then((res) => {
-        const homePath = res.default_home_path || "/owners/dashboard";
-        localStorage.setItem("token", res.access);
-        localStorage.setItem("refreshToken", res.refresh);
-        localStorage.setItem("defaultHomePath", homePath);
-        navigate(homePath);
-      })
-      .catch((error: unknown) => {
-        if (error instanceof ApiError) {
-          setSubmitError(error.message || "Login failed");
-        } else {
-          setSubmitError("Something went wrong. Please try again.");
-        }
-      })
-      .finally(() => setSubmitting(false));
   }
-*/
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <header className="flex items-center justify-between">

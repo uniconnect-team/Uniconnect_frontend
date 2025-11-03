@@ -27,6 +27,55 @@ export type LoginBody = {
   remember_me?: boolean;
 };
 
+export type PropertyImage = {
+  id: number;
+  image: string;
+  caption?: string;
+  uploaded_at: string;
+};
+
+export type RoomImage = {
+  id: number;
+  image: string;
+  caption?: string;
+  uploaded_at: string;
+};
+
+export type RoomType = "SINGLE" | "DOUBLE" | "SUITE" | "OTHER";
+
+export type Room = {
+  id: number;
+  name: string;
+  room_type: RoomType;
+  description: string;
+  property: number;
+  price_per_month: string;
+  capacity: number;
+  available_quantity: number;
+  amenities: string[];
+  electricity_included: boolean;
+  cleaning_included: boolean;
+  is_active: boolean;
+  images: RoomImage[];
+  created_at: string;
+  updated_at: string;
+};
+
+export type Property = {
+  id: number;
+  name: string;
+  location: string;
+  description: string;
+  cover_image: string | null;
+  amenities: string[];
+  electricity_included: boolean;
+  cleaning_included: boolean;
+  images: PropertyImage[];
+  rooms: Room[];
+  created_at: string;
+  updated_at: string;
+};
+
 export type AuthenticatedUser = {
   id: number;
   username: string;
@@ -44,7 +93,33 @@ export type AuthenticatedUser = {
     id: number;
     name: string;
     location: string;
+    cover_image?: string;
+    rooms_count?: number;
+    electricity_included?: boolean;
+    cleaning_included?: boolean;
   }[];
+};
+
+export type PropertyPayload = {
+  name: string;
+  location: string;
+  description?: string;
+  amenities?: string[];
+  electricity_included?: boolean;
+  cleaning_included?: boolean;
+};
+
+export type RoomPayload = {
+  name: string;
+  room_type: RoomType;
+  description?: string;
+  price_per_month: string;
+  capacity?: number;
+  available_quantity?: number;
+  amenities?: string[];
+  electricity_included?: boolean;
+  cleaning_included?: boolean;
+  is_active?: boolean;
 };
 
 export type AuthResponse = {

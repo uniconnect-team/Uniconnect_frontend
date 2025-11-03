@@ -1,13 +1,19 @@
-import type { 
-  AuthResponse, 
-  LoginBody, 
-  OwnerRegisterBody, 
-  RegisterBody, 
+import type {
+  AuthResponse,
+  LoginBody,
+  OwnerRegisterBody,
+  RegisterBody,
   TokenLoginResponse,
   SeekerProfileCompletionBody,
   OwnerProfileCompletionBody,
   ProfileCompletionResponse,
   AuthenticatedUser,
+  Property,
+  PropertyImage,
+  PropertyPayload,
+  Room,
+  RoomImage,
+  RoomPayload,
 } from "./types";
 
 export const API_URL = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
@@ -54,17 +60,20 @@ function deriveErrorMessage(data: unknown): string | null {
 
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const token = localStorage.getItem("token");
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-    ...(init?.headers || {}),
-  };
-  
-  if (token) {
-    (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
+  const finalHeaders = new Headers(init?.headers);
+
+  const isFormData = typeof FormData !== "undefined" && init?.body instanceof FormData;
+
+  if (!isFormData && !finalHeaders.has("Content-Type")) {
+    finalHeaders.set("Content-Type", "application/json");
+  }
+
+  if (token && !finalHeaders.has("Authorization")) {
+    finalHeaders.set("Authorization", `Bearer ${token}`);
   }
 
   const res = await fetch(`${API_URL}${path}`, {
-    headers,
+    headers: finalHeaders,
     credentials: "omit",
     ...init,
   });
@@ -141,5 +150,100 @@ export async function updateProfile(body: Partial<SeekerProfileCompletionBody> |
   return api<AuthenticatedUser>("/api/v1/auth/update-profile/", {
     method: "PUT",
     body: JSON.stringify(body),
+  });
+}
+
+export async function getOwnerProperties() {
+  return api<Property[]>("/api/v1/auth/owner/properties/");
+}
+
+export async function createOwnerProperty(body: PropertyPayload) {
+  return api<Property>("/api/v1/auth/owner/properties/", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function updateOwnerProperty(
+  propertyId: number,
+  body: (Partial<PropertyPayload> & { cover_image?: null }) | FormData,
+) {
+  const requestBody = body instanceof FormData ? body : JSON.stringify(body);
+  return api<Property>(`/api/v1/auth/owner/properties/${propertyId}/`, {
+    method: "PATCH",
+    body: requestBody,
+  });
+}
+
+export async function deleteOwnerProperty(propertyId: number) {
+  return api<void>(`/api/v1/auth/owner/properties/${propertyId}/`, {
+    method: "DELETE",
+  });
+}
+
+export async function uploadPropertyCoverImage(propertyId: number, file: File) {
+  const formData = new FormData();
+  formData.append("cover_image", file);
+  return api<Property>(`/api/v1/auth/owner/properties/${propertyId}/`, {
+    method: "PATCH",
+    body: formData,
+  });
+}
+
+export async function uploadPropertyGalleryImage(propertyId: number, file: File, caption?: string) {
+  const formData = new FormData();
+  formData.append("property", String(propertyId));
+  formData.append("image", file);
+  if (caption) {
+    formData.append("caption", caption);
+  }
+  return api<PropertyImage>("/api/v1/auth/owner/property-images/", {
+    method: "POST",
+    body: formData,
+  });
+}
+
+export async function deletePropertyImage(imageId: number) {
+  return api<void>(`/api/v1/auth/owner/property-images/${imageId}/`, {
+    method: "DELETE",
+  });
+}
+
+export async function createOwnerRoom(propertyId: number, body: RoomPayload) {
+  return api<Room>(`/api/v1/auth/owner/properties/${propertyId}/rooms/`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function updateOwnerRoom(propertyId: number, roomId: number, body: Partial<RoomPayload>) {
+  return api<Room>(`/api/v1/auth/owner/properties/${propertyId}/rooms/${roomId}/`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function deleteOwnerRoom(propertyId: number, roomId: number) {
+  return api<void>(`/api/v1/auth/owner/properties/${propertyId}/rooms/${roomId}/`, {
+    method: "DELETE",
+  });
+}
+
+export async function uploadRoomImage(roomId: number, file: File, caption?: string) {
+  const formData = new FormData();
+  formData.append("room", String(roomId));
+  formData.append("image", file);
+  if (caption) {
+    formData.append("caption", caption);
+  }
+  return api<RoomImage>("/api/v1/auth/owner/room-images/", {
+    method: "POST",
+    body: formData,
+  });
+}
+
+export async function deleteRoomImage(imageId: number) {
+  return api<void>(`/api/v1/auth/owner/room-images/${imageId}/`, {
+    method: "DELETE",
   });
 }
