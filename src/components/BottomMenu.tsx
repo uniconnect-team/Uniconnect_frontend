@@ -4,7 +4,7 @@ import { Icon } from "./Icon";
 
 const menuItems = [
   { name: "Home", path: "/seekers/home", ownerPath: "/owners/dashboard", icon: "building" as const },
-  { name: "Chat", path: "/chat", icon: "messages-square" as const },
+  { name: "Properties", path: "/chat", icon: "building" as const },
   { name: "Favorites", path: "/favorites", icon: "heart" as const },
   { name: "Profile", path: "/profile", icon: "user" as const },
 ];

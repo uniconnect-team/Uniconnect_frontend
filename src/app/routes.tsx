@@ -13,7 +13,7 @@ import { Landing } from "../features/home/pages/Landing";
 import { Profile } from "../features/profile/pages/Profile";
 import { Notifications } from "../features/notifications/pages/Notifications";
 import { Roommate } from "../features/roommate/pages/Roommate";
-import { Chat } from "../features/chat/pages/Chat";
+import { Properties } from "../features/chat/pages/Properties";
 import { Favorites } from "../features/favorites/pages/Favorites";
 import { Transportation } from "../features/transportation/pages/Transportation";
 
@@ -36,7 +36,7 @@ export function AppRoutes() {
         { path: "/profile", element: <Profile /> },
         { path: "/notifications", element: <Notifications /> },
         { path: "/roommate", element: <Roommate /> },
-        { path: "/chat", element: <Chat /> },
+        { path: "/chat", element: <Properties /> },
         { path: "/favorites", element: <Favorites /> },
         { path: "/transportation", element: <Transportation /> },
         { path: "/home", element: <Navigate to="/seekers/home" replace /> },
