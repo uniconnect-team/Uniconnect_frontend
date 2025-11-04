@@ -99,6 +99,9 @@ export function Signup() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
     const trimmedFullName = fullName.trim();
     const trimmedPhone = phone.trim();
     const trimmedUniversityEmail = universityEmail.trim();
