@@ -53,6 +53,7 @@ type DormFormState = {
   property: number | "";
   description: string;
   amenitiesInput: string;
+   locationInput: string;
   has_room_service: boolean;
   has_electricity: boolean;
   has_water: boolean;
@@ -148,9 +149,10 @@ function DormForm({
 }) {
   const [form, setForm] = useState<DormFormState>(() => ({
     name: initialValue?.name ?? "",
-    property: initialValue?.property ?? properties[0]?.id ?? "",
+    property:"",
     description: initialValue?.description ?? "",
     amenitiesInput: initialValue?.amenities?.join(", ") ?? "",
+    locationInput: "",
     has_room_service: initialValue?.has_room_service ?? false,
     has_electricity: initialValue?.has_electricity ?? false,
     has_water: initialValue?.has_water ?? false,
@@ -162,9 +164,10 @@ function DormForm({
   useEffect(() => {
     setForm({
       name: initialValue?.name ?? "",
-      property: initialValue?.property ?? properties[0]?.id ?? "",
+      property:"",
       description: initialValue?.description ?? "",
       amenitiesInput: initialValue?.amenities?.join(", ") ?? "",
+      locationInput: "",
       has_room_service: initialValue?.has_room_service ?? false,
       has_electricity: initialValue?.has_electricity ?? false,
       has_water: initialValue?.has_water ?? false,
@@ -235,6 +238,20 @@ function DormForm({
             placeholder="Describe this dorm's highlights"
           />
         </div>
+        <div className="space-y-1">
+          <label className="block text-sm font-medium text-gray-700" htmlFor="dorm-location">
+             Location (shown as a tag)
+          </label>
+          <input
+            id="dorm-location"
+            type="text"
+            value={form.locationInput}
+            onChange={(e) => setForm((prev) => ({ ...prev, locationInput: e.target.value }))}
+            className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:border-[color:var(--brand)] focus:outline-none focus:ring-2 focus:ring-[color:var(--brand)]/20"
+            placeholder="e.g. Hamra, Beirut"
+           />
+        </div>
+
 
         <div className="space-y-1">
           <label className="block text-sm font-medium text-gray-700" htmlFor="dorm-amenities">
@@ -786,13 +803,15 @@ function DormCard({
       setDormImageError("Please select an image to upload");
       return;
     }
+
+    const formEl = event.currentTarget;
     setDormImageSubmitting(true);
     setDormImageError(null);
     try {
       await onUploadDormImage(dorm.id, dormImageFile, dormImageCaption.trim());
       setDormImageFile(null);
       setDormImageCaption("");
-      const fileInput = event.currentTarget.querySelector("input[type='file']") as HTMLInputElement | null;
+      const fileInput = formEl.querySelector("input[type='file']") as HTMLInputElement | null;
       if (fileInput) {
         fileInput.value = "";
       }
@@ -829,6 +848,7 @@ function DormCard({
 
   async function handleRoomImageSubmit(roomId: number, event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const formEl = event.currentTarget;
     const state = roomImageStates[roomId] ?? {
       file: null,
       caption: "",
@@ -846,7 +866,7 @@ function DormCard({
     try {
       await onUploadRoomImage(dorm.id, roomId, state.file, state.caption.trim());
       updateRoomImageState(roomId, () => ({ file: null, caption: "", submitting: false, error: null }));
-      const fileInput = event.currentTarget.querySelector("input[type='file']") as HTMLInputElement | null;
+      const fileInput = formEl.querySelector("input[type='file']") as HTMLInputElement | null;
       if (fileInput) {
         fileInput.value = "";
       }
@@ -876,10 +896,14 @@ function DormCard({
               {dorm.is_active ? "Active" : "Inactive"}
             </span>
           </div>
-          <p className="text-sm text-gray-500">
-            {dorm.property_detail?.name ?? "Unassigned"}
-            {dorm.property_detail?.location ? ` • ${dorm.property_detail.location}` : ""}
-          </p>
+          {dorm.property_detail ? (
+            <p className="text-sm text-gray-500">
+              {dorm.property_detail.name}
+              {dorm.property_detail.location ? ` • ${dorm.property_detail.location}` : ""}
+            </p>
+          ) : null}
+
+          
         </div>
         <div className="flex gap-2">
           <button
@@ -1175,6 +1199,41 @@ export function OwnerDashboard() {
     return data;
   }, []);
 
+  const seedDormsFromProperties = useCallback(
+  async (userData: AuthenticatedUser, existingDorms: OwnerDorm[]) => {
+    const existingDormNames = new Set(
+      (existingDorms ?? []).map((d) => (d.name ?? "").trim().toLowerCase())
+    );
+
+    const propertiesNeedingDorm = (userData.properties ?? []).filter(
+      (p) => !existingDormNames.has((p.name ?? "").trim().toLowerCase())
+    );
+
+    if (propertiesNeedingDorm.length === 0) return;
+
+    for (const p of propertiesNeedingDorm) {
+      try {
+        await createOwnerDorm({
+          name: p.name,
+          property: p.id,
+          description: "",
+          amenities: [],
+          has_room_service: false,
+          has_electricity: false,
+          has_water: false,
+          has_internet: false,
+          is_active: true,
+        });
+      } catch {
+        // ignore and continue
+      }
+    }
+
+    await reloadDorms();
+  },
+  [reloadDorms]
+ );
+
   useEffect(() => {
     let active = true;
     setLoading(true);
@@ -1188,6 +1247,7 @@ export function OwnerDashboard() {
         if (userData.default_home_path) {
           localStorage.setItem("defaultHomePath", userData.default_home_path);
         }
+        return seedDormsFromProperties(userData, dormData);
       })
       .catch((err) => {
         if (!active) return;
@@ -1273,10 +1333,17 @@ export function OwnerDashboard() {
       return;
     }
 
-    const amenities = values.amenitiesInput
+    const amenitiesFromText = values.amenitiesInput
       .split(",")
       .map((item) => item.trim())
       .filter(Boolean);
+
+    const locationAmenity = values.locationInput.trim()
+      ? [`Location: ${values.locationInput.trim()}`]
+      : [];
+
+    const amenities = [...locationAmenity, ...amenitiesFromText];
+
 
     const basePayload: DormRequestBody = {
       name: values.name.trim(),
@@ -1450,8 +1517,9 @@ export function OwnerDashboard() {
         <section className="space-y-4 rounded-3xl border border-gray-200 bg-gradient-to-r from-[color:var(--brand)]/10 via-white to-purple-50 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs uppercase tracking-wide text-gray-500">Properties managed</p>
-              <p className="text-2xl font-semibold text-[color:var(--ink)]">{properties.length}</p>
+              <p className="text-xs uppercase tracking-wide text-gray-500">Dorms managed</p>
+              <p className="text-2xl font-semibold text-[color:var(--ink)]">{dorms.length}</p>
+...
             </div>
             <button
               type="button"
@@ -1467,12 +1535,14 @@ export function OwnerDashboard() {
             </p>
           ) : (
             <ul className="grid gap-2 text-sm text-gray-600">
-              {properties.map((property) => (
-                <li key={property.id} className="flex items-center gap-2">
+              {dorms.map((d) => (
+                <li key={d.id} className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-[color:var(--brand)]" />
-                  <span className="font-medium text-[color:var(--ink)]">{property.name}</span>
-                  <span className="text-gray-500">— {property.location}</span>
-                </li>
+                  <span className="font-medium text-[color:var(--ink)]">{d.name}</span>
+                  {d.property_detail?.location ? (
+                    <span className="text-gray-500">— {d.property_detail.location}</span>
+                   ) : null}
+                  </li>
               ))}
             </ul>
           )}
