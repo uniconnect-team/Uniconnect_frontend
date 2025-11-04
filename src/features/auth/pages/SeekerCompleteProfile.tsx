@@ -34,7 +34,9 @@ export function SeekerCompleteProfile() {
         }
         
         if (user.profile_completed) {
-          navigate("/seekers/home", { replace: true });
+          const homePath = user.default_home_path || "/seekers/home";
+          localStorage.setItem("defaultHomePath", homePath);
+          navigate(homePath, { replace: true });
           return;
         }
         
@@ -104,6 +106,7 @@ export function SeekerCompleteProfile() {
     completeProfile(profileData)
       .then((user) => {
         const homePath = user.default_home_path || "/seekers/home";
+        localStorage.setItem("defaultHomePath", homePath);
         navigate(homePath, { replace: true });
       })
       .catch((error: unknown) => {

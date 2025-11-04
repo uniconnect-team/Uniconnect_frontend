@@ -32,7 +32,9 @@ export function OwnerCompleteProfile() {
         }
         
         if (user.profile_completed) {
-          navigate("/owners/dashboard", { replace: true });
+          const homePath = user.default_home_path || "/owners/dashboard";
+          localStorage.setItem("defaultHomePath", homePath);
+          navigate(homePath, { replace: true });
           return;
         }
         
@@ -98,6 +100,7 @@ export function OwnerCompleteProfile() {
     })
       .then((user) => {
         const homePath = user.default_home_path || "/owners/dashboard";
+        localStorage.setItem("defaultHomePath", homePath);
         navigate(homePath, { replace: true });
       })
       .catch((error: unknown) => {
