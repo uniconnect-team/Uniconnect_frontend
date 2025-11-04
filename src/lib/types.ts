@@ -45,6 +45,13 @@ export type AuthenticatedUser = {
     name: string;
     location: string;
   }[];
+  dorms?: {
+    id: number;
+    name: string;
+    property: number;
+    cover_photo?: string | null;
+    is_active: boolean;
+  }[];
 };
 
 export type AuthResponse = {
@@ -70,3 +77,117 @@ export type OwnerProfileCompletionBody = {
 };
 
 export type ProfileCompletionResponse = AuthenticatedUser;
+
+export type OwnerProperty = {
+  id: number;
+  name: string;
+  location: string;
+};
+
+export type DormGalleryImage = {
+  id: number;
+  dorm?: number;
+  room?: number;
+  image: string;
+  caption?: string | null;
+  created_at?: string;
+};
+
+export type DormRoom = {
+  id: number;
+  dorm: number;
+  name: string;
+  room_type: "SINGLE" | "DOUBLE" | "TRIPLE" | "QUAD" | "STUDIO" | "OTHER";
+  capacity: number;
+  price_per_month: string;
+  total_units: number;
+  available_units: number;
+  is_available: boolean;
+  description?: string | null;
+  images?: DormGalleryImage[];
+};
+
+export type OwnerDorm = {
+  id: number;
+  name: string;
+  property: number;
+  property_detail?: OwnerProperty;
+  description?: string | null;
+  amenities: string[];
+  has_room_service: boolean;
+  has_electricity: boolean;
+  has_water: boolean;
+  has_internet: boolean;
+  is_active: boolean;
+  cover_photo?: string | null;
+  rooms?: DormRoom[];
+  images?: DormGalleryImage[];
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type DormRequestBody = {
+  name: string;
+  property: number;
+  description?: string;
+  amenities: string[];
+  has_room_service: boolean;
+  has_electricity: boolean;
+  has_water: boolean;
+  has_internet: boolean;
+  is_active: boolean;
+  cover_photo?: File | null;
+};
+
+export type DormRoomRequestBody = {
+  dorm: number;
+  name: string;
+  room_type: DormRoom["room_type"];
+  capacity: number;
+  price_per_month: string | number;
+  total_units: number;
+  available_units: number;
+  is_available: boolean;
+  description?: string;
+};
+
+export type BookingRequestStatus = "PENDING" | "APPROVED" | "DECLINED" | "CANCELLED";
+
+export type BookingRequest = {
+  id: number;
+  dorm: number;
+  room?: number | null;
+  dorm_summary?: {
+    id: number;
+    name: string;
+    property_name?: string;
+    cover_photo?: string | null;
+  };
+  seeker_name: string;
+  seeker_email: string;
+  seeker_phone: string;
+  check_in: string;
+  check_out: string;
+  status: BookingRequestStatus;
+  owner_note?: string | null;
+  responded_at?: string | null;
+  created_at?: string;
+};
+
+export type BookingRequestFilters = {
+  status?: BookingRequestStatus;
+  dorm?: number;
+  room?: number;
+};
+
+export type BookingRequestPayload = {
+  dorm: number;
+  room?: number | null;
+  seeker_name: string;
+  seeker_email: string;
+  seeker_phone: string;
+  check_in: string;
+  check_out: string;
+  status?: BookingRequestStatus;
+  owner_note?: string | null;
+};
