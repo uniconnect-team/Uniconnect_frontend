@@ -1390,7 +1390,11 @@ export function OwnerDashboard() {
     await refreshBookings(bookingFilters);
   }
 
-  const hasOwnerAccess = user?.role === "OWNER";
+  const normalizedRole = user?.role ? user.role.toUpperCase() : null;
+  const hasOwnerAccess =
+    normalizedRole === "OWNER" ||
+    (user?.default_home_path ?? "").startsWith("/owners/") ||
+    Boolean(user?.properties?.length);
 
   if (loading) {
     return (
