@@ -1,5 +1,4 @@
 // FILE: src/features/home/pages/OwnerDashboard.tsx
-import { Icon } from "../../../components/Icon";
 import { BottomMenu } from "../../../components/BottomMenu";
 
 export function OwnerDashboard() {
