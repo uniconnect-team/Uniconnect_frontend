@@ -1390,9 +1390,24 @@ export function OwnerDashboard() {
     await refreshBookings(bookingFilters);
   }
 
-  const hasOwnerAccess = user?.role === "OWNER";
+  const normalizedRole = user?.role ? user.role.toUpperCase() : null;
+  const hasOwnerAccess =
+    normalizedRole === "OWNER" ||
+    (user?.default_home_path ?? "").startsWith("/owners/") ||
+    Boolean(user?.properties?.length);
 
-  if (loading) {
+  if (loading || !user) {
+    if (!loading && error) {
+      return (
+        <div className="space-y-4">
+          <FeedbackMessage
+            variant="error"
+            message={error ?? "We couldn't load your owner dashboard. Please try again."}
+          />
+        </div>
+      );
+    }
+
     return (
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="text-center space-y-3">
