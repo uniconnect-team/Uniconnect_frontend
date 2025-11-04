@@ -176,6 +176,18 @@ const icons = {
       <path d="m9 12 2 2 4-4" />
     </svg>
   ),
+  plus: (props) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M12 5v14" />
+      <path d="M5 12h14" />
+    </svg>
+  ),
+  edit: (props) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+      <path d="M18.5 2.5 21.5 5.5 12 15l-4 1 1-4 9.5-9.5z" />
+    </svg>
+  ),
 } satisfies Record<string, (props: SVGProps<SVGSVGElement>) => JSX.Element>;
 
 export type IconName = keyof typeof icons;
