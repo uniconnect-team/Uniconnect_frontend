@@ -1,13 +1,20 @@
 // FILE: src/components/BottomMenu.tsx
 import { Link, useLocation } from "react-router-dom";
-import { Icon } from "./Icon";
+import { Icon, type IconName } from "./Icon";
 
 export function BottomMenu() {
   const location = useLocation();
   const defaultHomePath = localStorage.getItem("defaultHomePath") || "/seekers/home";
   const homeActivePaths = new Set(["/seekers/home", "/owners/dashboard", defaultHomePath]);
 
-  const menuItems = [
+  type MenuItem = {
+    name: string;
+    path: string;
+    icon: IconName;
+    isActive?: (currentPath: string) => boolean;
+  };
+
+  const menuItems: MenuItem[] = [
     {
       name: "Home",
       path: defaultHomePath,
