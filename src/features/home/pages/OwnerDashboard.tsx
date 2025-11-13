@@ -8,6 +8,7 @@ import { Icon } from "../../../components/Icon";
 import { formatCurrency, formatDate, formatDateRange } from "../../../lib/format";
 import {
   ApiError,
+  MEDIA_API_URL,
   createDormImage,
   createDormRoom,
   createDormRoomImage,
@@ -880,7 +881,7 @@ function DormCard({
       {dorm.cover_photo ? (
         <div className="overflow-hidden rounded-2xl border border-gray-200">
           <img
-            src={dorm.cover_photo}
+            src={`${MEDIA_API_URL}${dorm.cover_photo}`}
             alt={`${dorm.name} cover`}
             className="h-48 w-full object-cover"
           />
@@ -919,7 +920,11 @@ function DormCard({
           <div className="grid grid-cols-3 gap-3">
             {dorm.images.map((image) => (
               <div key={image.id} className="relative overflow-hidden rounded-xl border border-gray-200">
-                <img src={image.image} alt={image.caption ?? `${dorm.name} gallery`} className="h-24 w-full object-cover" />
+                <img
+                  src={`${MEDIA_API_URL}${image.image}`}
+                  alt={image.caption ?? `${dorm.name} gallery`}
+                  className="h-24 w-full object-cover"
+                />
                 <button
                   type="button"
                   onClick={() => onDeleteDormImage(dorm.id, image.id)}
@@ -1047,7 +1052,11 @@ function DormCard({
                       <div className="grid grid-cols-3 gap-3">
                         {room.images.map((image) => (
                           <div key={image.id} className="relative overflow-hidden rounded-xl border border-gray-200">
-                            <img src={image.image} alt={image.caption ?? `${room.name} image`} className="h-24 w-full object-cover" />
+                            <img
+                              src={`${MEDIA_API_URL}${image.image}`}
+                              alt={image.caption ?? `${room.name} image`}
+                              className="h-24 w-full object-cover"
+                            />
                             <button
                               type="button"
                               onClick={() => onDeleteRoomImage(room.id, image.id)}
