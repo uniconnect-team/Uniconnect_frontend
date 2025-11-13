@@ -146,39 +146,39 @@ export async function api<T>(path: string, init?: RequestInit, baseUrl: string =
 }
 
 export async function register(body: RegisterBody) {
-  return api<AuthResponse>("/api/v1/auth/register/", {
+  return api<AuthResponse>("/auth/register/", {
     method: "POST",
     body: JSON.stringify(body),
   }, AUTH_API_URL);
 }
 
 export async function registerOwner(body: OwnerRegisterBody) {
-  return api<AuthResponse>("/api/v1/auth/register-owner/", {
+  return api<AuthResponse>("/auth/register-owner/", {
     method: "POST",
     body: JSON.stringify(body),
   }, AUTH_API_URL);
 }
 
 export async function login(body: LoginBody) {
-  return api<TokenLoginResponse>("/api/v1/auth/login/", {
+  return api<TokenLoginResponse>("/auth/login/", {
     method: "POST",
     body: JSON.stringify(body),
   }, AUTH_API_URL);
 }
 
 export async function completeProfile(body: SeekerProfileCompletionBody | OwnerProfileCompletionBody): Promise<ProfileCompletionResponse> {
-  return api<ProfileCompletionResponse>("/api/v1/auth/complete-profile/", {
+  return api<ProfileCompletionResponse>("/auth/complete-profile/", {
     method: "POST",
     body: JSON.stringify(body),
   }, AUTH_API_URL);
 }
 
 export async function getMe() {
-  return api<AuthenticatedUser>("/api/v1/auth/me/", undefined, AUTH_API_URL);
+  return api<AuthenticatedUser>("/auth/me/", undefined, AUTH_API_URL);
 }
 
 export async function updateProfile(body: Partial<SeekerProfileCompletionBody> | Partial<OwnerProfileCompletionBody>) {
-  return api<AuthenticatedUser>("/api/v1/auth/update-profile/", {
+  return api<AuthenticatedUser>("/auth/update-profile/", {
     method: "PUT",
     body: JSON.stringify(body),
   }, AUTH_API_URL);
