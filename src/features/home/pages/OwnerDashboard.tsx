@@ -1,9 +1,11 @@
 // FILE: src/features/home/pages/OwnerDashboard.tsx
 import { BottomMenu } from "../../../components/BottomMenu";
 import { FeedbackMessage } from "../../../components/FeedbackMessage";
+import { BookingStatusBadge } from "../../../components/BookingStatusBadge";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { Icon } from "../../../components/Icon";
+import { formatCurrency, formatDate, formatDateRange } from "../../../lib/format";
 import {
   ApiError,
   createDormImage,
@@ -81,41 +83,6 @@ function getErrorMessage(error: unknown) {
     return error.message;
   }
   return "Something went wrong. Please try again.";
-}
-
-function formatCurrency(value: string | number) {
-  const numericValue = typeof value === "number" ? value : Number(value);
-  if (Number.isNaN(numericValue)) {
-    return typeof value === "string" ? value : "";
-  }
-
-  return new Intl.NumberFormat("en-PH", {
-    style: "currency",
-    currency: "PHP",
-    maximumFractionDigits: 0,
-  }).format(numericValue);
-}
-
-function formatDate(value?: string | null) {
-  if (!value) return null;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(date);
-}
-
-function formatDateRange(start?: string | null, end?: string | null) {
-  const startLabel = formatDate(start);
-  const endLabel = formatDate(end);
-
-  if (startLabel && endLabel) {
-    return `${startLabel} - ${endLabel}`;
-  }
-
-  return startLabel ?? endLabel ?? "Dates not specified";
 }
 
 function DormForm({
@@ -593,21 +560,6 @@ function RoomForm({
         </button>
       </div>
     </form>
-  );
-}
-
-function BookingStatusBadge({ status }: { status: BookingRequest["status"] }) {
-  const styles: Record<BookingRequest["status"], string> = {
-    PENDING: "bg-amber-100 text-amber-700",
-    APPROVED: "bg-emerald-100 text-emerald-700",
-    DECLINED: "bg-rose-100 text-rose-700",
-    CANCELLED: "bg-gray-200 text-gray-600",
-  };
-  return (
-    <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${styles[status]}`}>
-      <span className="h-2 w-2 rounded-full bg-current" />
-      {status}
-    </span>
   );
 }
 
