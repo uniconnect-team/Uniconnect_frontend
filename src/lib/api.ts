@@ -28,6 +28,24 @@ export const NOTIFICATIONS_API_URL =
   import.meta.env.VITE_NOTIFICATIONS_API_URL ?? "http://localhost:8006";
 export const CORE_API_URL = import.meta.env.VITE_CORE_API_URL ?? "http://localhost:8007";
 
+const ABSOLUTE_URL_PATTERN = /^https?:\/\//i;
+
+export function resolveMediaUrl(path?: string | null): string | undefined {
+  if (!path) {
+    return undefined;
+  }
+
+  if (ABSOLUTE_URL_PATTERN.test(path)) {
+    return path;
+  }
+
+  if (path.startsWith("/")) {
+    return `${MEDIA_API_URL}${path}`;
+  }
+
+  return `${MEDIA_API_URL}/${path}`;
+}
+
 export class ApiError extends Error {
   status: number;
   data: unknown;

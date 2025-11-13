@@ -11,6 +11,7 @@ import {
   getMe,
   getSeekerBookingRequests,
   getSeekerDorms,
+  resolveMediaUrl,
 } from "../../../lib/api";
 import type {
   AuthenticatedUser,
@@ -391,14 +392,17 @@ export function SeekerHome() {
             </div>
           ) : (
             <div className="space-y-8">
-              {activeDorms.map((dorm) => (
-                <article
-                  key={dorm.id}
-                  id={`dorm-${dorm.id}`}
-                  className={`space-y-6 rounded-3xl border bg-white p-6 shadow-sm transition ${
-                    selectedDormId === dorm.id ? "border-[color:var(--brand)]/60" : "border-gray-200"
-                  }`}
-                >
+              {activeDorms.map((dorm) => {
+                const coverPhotoUrl = resolveMediaUrl(dorm.cover_photo);
+
+                return (
+                  <article
+                    key={dorm.id}
+                    id={`dorm-${dorm.id}`}
+                    className={`space-y-6 rounded-3xl border bg-white p-6 shadow-sm transition ${
+                      selectedDormId === dorm.id ? "border-[color:var(--brand)]/60" : "border-gray-200"
+                    }`}
+                  >
                   <header className="space-y-2">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
@@ -419,10 +423,10 @@ export function SeekerHome() {
                     ) : null}
                   </header>
 
-                  {dorm.cover_photo ? (
+                  {coverPhotoUrl ? (
                     <div className="overflow-hidden rounded-2xl border border-gray-100">
                       <img
-                        src={`${MEDIA_API_URL}${dorm.cover_photo}`}
+                        src={coverPhotoUrl}
                         alt={`${dorm.name} cover`}
                         className="h-56 w-full object-cover"
                       />
@@ -460,18 +464,25 @@ export function SeekerHome() {
                     <h4 className="text-sm font-semibold text-gray-800">Dorm gallery</h4>
                     {dorm.images && dorm.images.length > 0 ? (
                       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                        {dorm.images.map((image) => (
-                          <div key={image.id} className="overflow-hidden rounded-xl border border-gray-200">
-                            <img
-                              src={`${MEDIA_API_URL}${image.image}`}
-                              alt={image.caption ?? `${dorm.name} image`}
-                              className="h-32 w-full object-cover"
-                            />
-                            {image.caption ? (
-                              <p className="truncate px-2 pb-2 pt-1 text-[10px] text-gray-600">{image.caption}</p>
-                            ) : null}
-                          </div>
-                        ))}
+                        {dorm.images.map((image) => {
+                          const imageUrl = resolveMediaUrl(image.image);
+                          if (!imageUrl) {
+                            return null;
+                          }
+
+                          return (
+                            <div key={image.id} className="overflow-hidden rounded-xl border border-gray-200">
+                              <img
+                                src={imageUrl}
+                                alt={image.caption ?? `${dorm.name} image`}
+                                className="h-32 w-full object-cover"
+                              />
+                              {image.caption ? (
+                                <p className="truncate px-2 pb-2 pt-1 text-[10px] text-gray-600">{image.caption}</p>
+                              ) : null}
+                            </div>
+                          );
+                        })}
                       </div>
                     ) : (
                       <p className="text-xs text-gray-500">No photos added yet.</p>
@@ -521,15 +532,22 @@ export function SeekerHome() {
 
                             {room.images && room.images.length > 0 ? (
                               <div className="grid grid-cols-3 gap-3">
-                                {room.images.map((image) => (
-                                  <div key={image.id} className="overflow-hidden rounded-xl border border-gray-200">
-                                    <img
-                                      src={`${MEDIA_API_URL}${image.image}`}
-                                      alt={image.caption ?? `${room.name} image`}
-                                      className="h-24 w-full object-cover"
-                                    />
-                                  </div>
-                                ))}
+                                {room.images.map((image) => {
+                                  const imageUrl = resolveMediaUrl(image.image);
+                                  if (!imageUrl) {
+                                    return null;
+                                  }
+
+                                  return (
+                                    <div key={image.id} className="overflow-hidden rounded-xl border border-gray-200">
+                                      <img
+                                        src={imageUrl}
+                                        alt={image.caption ?? `${room.name} image`}
+                                        className="h-24 w-full object-cover"
+                                      />
+                                    </div>
+                                  );
+                                })}
                               </div>
                             ) : null}
 
@@ -553,8 +571,9 @@ export function SeekerHome() {
                       <p className="text-sm text-gray-500">No rooms published yet.</p>
                     )}
                   </div>
-                </article>
-              ))}
+                  </article>
+                );
+              })}
             </div>
           )}
         </section>

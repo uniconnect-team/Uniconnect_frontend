@@ -20,6 +20,7 @@ import {
   getMe,
   getOwnerBookingRequests,
   getOwnerDorms,
+  resolveMediaUrl,
   updateBookingRequest,
   updateDormRoom,
   updateOwnerDorm,
@@ -28,6 +29,7 @@ import type {
   AuthenticatedUser,
   BookingRequest,
   BookingRequestFilters,
+  DormGalleryImage,
   DormRequestBody,
   DormRoom,
   DormRoomRequestBody,
@@ -690,7 +692,7 @@ function DormCard({
   onUploadDormImage: (dormId: number, file: File, caption: string) => Promise<void>;
   onDeleteDormImage: (dormId: number, imageId: number) => Promise<void>;
   onUploadRoomImage: (dormId: number, roomId: number, file: File, caption: string) => Promise<void>;
-  onDeleteRoomImage: (roomId: number, imageId: number) => Promise<void>;
+  onDeleteRoomImage: (dormId: number, roomId: number, imageId: number) => Promise<void>;
 }) {
   const [roomFormMode, setRoomFormMode] = useState<"create" | "edit" | null>(null);
   const [roomFormTarget, setRoomFormTarget] = useState<DormRoom | null>(null);
@@ -706,6 +708,7 @@ function DormCard({
     submitting: boolean;
     error: string | null;
   }>>({});
+  const coverPhotoUrl = resolveMediaUrl(dorm.cover_photo);
 
   function handleOpenCreateRoom() {
     setRoomFormMode("create");
@@ -878,10 +881,10 @@ function DormCard({
         </div>
       </header>
 
-      {dorm.cover_photo ? (
+      {coverPhotoUrl ? (
         <div className="overflow-hidden rounded-2xl border border-gray-200">
           <img
-            src={`${MEDIA_API_URL}${dorm.cover_photo}`}
+            src={coverPhotoUrl}
             alt={`${dorm.name} cover`}
             className="h-48 w-full object-cover"
           />
@@ -918,26 +921,33 @@ function DormCard({
         <h3 className="text-sm font-semibold text-gray-800">Dorm Gallery</h3>
         {dorm.images && dorm.images.length > 0 ? (
           <div className="grid grid-cols-3 gap-3">
-            {dorm.images.map((image) => (
-              <div key={image.id} className="relative overflow-hidden rounded-xl border border-gray-200">
-                <img
-                  src={`${MEDIA_API_URL}${image.image}`}
-                  alt={image.caption ?? `${dorm.name} gallery`}
-                  className="h-24 w-full object-cover"
-                />
-                <button
-                  type="button"
-                  onClick={() => onDeleteDormImage(dorm.id, image.id)}
-                  className="absolute right-2 top-2 rounded-full bg-white/80 p-1 text-xs text-rose-600 shadow"
-                  aria-label="Remove image"
-                >
-                  <Icon name="close" className="h-3 w-3" />
-                </button>
-                {image.caption ? (
-                  <p className="truncate px-2 pb-2 pt-1 text-[10px] text-gray-600">{image.caption}</p>
-                ) : null}
-              </div>
-            ))}
+            {dorm.images.map((image) => {
+              const imageUrl = resolveMediaUrl(image.image);
+              if (!imageUrl) {
+                return null;
+              }
+
+              return (
+                <div key={image.id} className="relative overflow-hidden rounded-xl border border-gray-200">
+                  <img
+                    src={imageUrl}
+                    alt={image.caption ?? `${dorm.name} gallery`}
+                    className="h-24 w-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => onDeleteDormImage(dorm.id, image.id)}
+                    className="absolute right-2 top-2 rounded-full bg-white/80 p-1 text-xs text-rose-600 shadow"
+                    aria-label="Remove image"
+                  >
+                    <Icon name="close" className="h-3 w-3" />
+                  </button>
+                  {image.caption ? (
+                    <p className="truncate px-2 pb-2 pt-1 text-[10px] text-gray-600">{image.caption}</p>
+                  ) : null}
+                </div>
+              );
+            })}
           </div>
         ) : (
           <p className="text-xs text-gray-500">No images uploaded yet.</p>
@@ -1050,26 +1060,33 @@ function DormCard({
                     <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Room Gallery</p>
                     {room.images && room.images.length > 0 ? (
                       <div className="grid grid-cols-3 gap-3">
-                        {room.images.map((image) => (
-                          <div key={image.id} className="relative overflow-hidden rounded-xl border border-gray-200">
-                            <img
-                              src={`${MEDIA_API_URL}${image.image}`}
-                              alt={image.caption ?? `${room.name} image`}
-                              className="h-24 w-full object-cover"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => onDeleteRoomImage(room.id, image.id)}
-                              className="absolute right-2 top-2 rounded-full bg-white/80 p-1 text-xs text-rose-600 shadow"
-                              aria-label="Remove image"
-                            >
-                              <Icon name="close" className="h-3 w-3" />
-                            </button>
-                            {image.caption ? (
-                              <p className="truncate px-2 pb-2 pt-1 text-[10px] text-gray-600">{image.caption}</p>
-                            ) : null}
-                          </div>
-                        ))}
+                        {room.images.map((image) => {
+                          const imageUrl = resolveMediaUrl(image.image);
+                          if (!imageUrl) {
+                            return null;
+                          }
+
+                          return (
+                            <div key={image.id} className="relative overflow-hidden rounded-xl border border-gray-200">
+                              <img
+                                src={imageUrl}
+                                alt={image.caption ?? `${room.name} image`}
+                                className="h-24 w-full object-cover"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => onDeleteRoomImage(dorm.id, room.id, image.id)}
+                                className="absolute right-2 top-2 rounded-full bg-white/80 p-1 text-xs text-rose-600 shadow"
+                                aria-label="Remove image"
+                              >
+                                <Icon name="close" className="h-3 w-3" />
+                              </button>
+                              {image.caption ? (
+                                <p className="truncate px-2 pb-2 pt-1 text-[10px] text-gray-600">{image.caption}</p>
+                              ) : null}
+                            </div>
+                          );
+                        })}
                       </div>
                     ) : (
                       <p className="text-xs text-gray-500">No photos yet for this room.</p>
@@ -1392,25 +1409,87 @@ export function OwnerDashboard() {
   }
 
   async function handleUploadDormImage(dormId: number, file: File, caption: string) {
-    await createDormImage({ dorm: dormId, image: file, caption: caption || undefined });
-    await reloadDorms();
+    const createdImage = await createDormImage({ dorm: dormId, image: file, caption: caption || undefined });
+    setDorms((prevDorms) =>
+      prevDorms.map((dorm) => {
+        if (dorm.id !== dormId) {
+          return dorm;
+        }
+
+        const nextImages: DormGalleryImage[] = [...(dorm.images ?? []), createdImage];
+        return { ...dorm, images: nextImages };
+      }),
+    );
   }
 
   async function handleDeleteDormImage(dormId: number, imageId: number) {
     if (!window.confirm("Remove this dorm photo?")) return;
     await deleteDormImage(imageId);
-    await reloadDorms();
+    setDorms((prevDorms) =>
+      prevDorms.map((dorm) => {
+        if (dorm.id !== dormId) {
+          return dorm;
+        }
+
+        return {
+          ...dorm,
+          images: (dorm.images ?? []).filter((image) => image.id !== imageId),
+        };
+      }),
+    );
   }
 
   async function handleUploadRoomImage(dormId: number, roomId: number, file: File, caption: string) {
-    await createDormRoomImage({ room: roomId, image: file, caption: caption || undefined });
-    await reloadDorms();
+    const createdImage = await createDormRoomImage({ room: roomId, image: file, caption: caption || undefined });
+    setDorms((prevDorms) =>
+      prevDorms.map((dorm) => {
+        if (dorm.id !== dormId) {
+          return dorm;
+        }
+
+        const rooms = dorm.rooms?.map((room) => {
+          if (room.id !== roomId) {
+            return room;
+          }
+
+          const nextImages: DormGalleryImage[] = [...(room.images ?? []), createdImage];
+          return { ...room, images: nextImages };
+        });
+
+        return {
+          ...dorm,
+          rooms,
+        };
+      }),
+    );
   }
 
-  async function handleDeleteRoomImage(roomId: number, imageId: number) {
+  async function handleDeleteRoomImage(dormId: number, roomId: number, imageId: number) {
     if (!window.confirm("Remove this room photo?")) return;
     await deleteDormRoomImage(imageId);
-    await reloadDorms();
+    setDorms((prevDorms) =>
+      prevDorms.map((dorm) => {
+        if (dorm.id !== dormId) {
+          return dorm;
+        }
+
+        const rooms = dorm.rooms?.map((room) => {
+          if (room.id !== roomId) {
+            return room;
+          }
+
+          return {
+            ...room,
+            images: (room.images ?? []).filter((image) => image.id !== imageId),
+          };
+        });
+
+        return {
+          ...dorm,
+          rooms,
+        };
+      }),
+    );
   }
 
   async function handleUpdateBooking(id: number, status: BookingRequest["status"], ownerNote: string) {
