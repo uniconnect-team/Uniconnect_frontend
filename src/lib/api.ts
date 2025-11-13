@@ -181,8 +181,8 @@ export async function getMe() {
 }
 
 export async function updateProfile(body: Partial<SeekerProfileCompletionBody> | Partial<OwnerProfileCompletionBody>) {
-  return api<AuthenticatedUser>("/profiles/me/", {
-    method: "PUT",
+  return api<AuthenticatedUser>("/profiles/complete/", {
+    method: "POST",
     body: JSON.stringify(body),
   }, PROFILES_API_URL);
 }
