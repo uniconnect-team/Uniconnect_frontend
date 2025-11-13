@@ -19,6 +19,13 @@ import type {
 } from "./types";
 
 export const API_URL = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
+export const AUTH_API_URL = import.meta.env.VITE_AUTH_API ?? API_URL;
+export const DORMS_API_URL = import.meta.env.VITE_DORMS_API ?? API_URL;
+export const BOOKING_API_URL = import.meta.env.VITE_BOOKING_API ?? API_URL;
+export const PROFILES_API_URL = import.meta.env.VITE_PROFILES_API ?? API_URL;
+export const MEDIA_API_URL = import.meta.env.VITE_MEDIA_API ?? API_URL;
+export const NOTIFICATIONS_API_URL = import.meta.env.VITE_NOTIFICATIONS_API ?? API_URL;
+export const CORE_API_URL = import.meta.env.VITE_CORE_API ?? API_URL;
 
 export class ApiError extends Error {
   status: number;
@@ -75,7 +82,7 @@ function isFormDataBody(body: BodyInit | null | undefined): body is FormData {
   return typeof FormData !== "undefined" && body instanceof FormData;
 }
 
-export async function api<T>(path: string, init?: RequestInit): Promise<T> {
+export async function api<T>(path: string, init?: RequestInit, baseUrl: string = API_URL): Promise<T> {
   const token = localStorage.getItem("token");
   const headers: HeadersInit = {
     ...(isFormDataBody(init?.body) ? {} : { "Content-Type": "application/json" }),
@@ -86,7 +93,7 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
     (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await fetch(`${baseUrl}${path}`, {
     headers,
     credentials: "omit",
     ...init,
@@ -139,47 +146,47 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export async function register(body: RegisterBody) {
-  return api<AuthResponse>("/api/v1/auth/register/", {
+  return api<AuthResponse>("/auth/register/", {
     method: "POST",
     body: JSON.stringify(body),
-  });
+  }, AUTH_API_URL);
 }
 
 export async function registerOwner(body: OwnerRegisterBody) {
-  return api<AuthResponse>("/api/v1/auth/register-owner/", {
+  return api<AuthResponse>("/auth/register-owner/", {
     method: "POST",
     body: JSON.stringify(body),
-  });
+  }, AUTH_API_URL);
 }
 
 export async function login(body: LoginBody) {
-  return api<TokenLoginResponse>("/api/v1/auth/login/", {
+  return api<TokenLoginResponse>("/auth/login/", {
     method: "POST",
     body: JSON.stringify(body),
-  });
+  }, AUTH_API_URL);
 }
 
 export async function completeProfile(body: SeekerProfileCompletionBody | OwnerProfileCompletionBody): Promise<ProfileCompletionResponse> {
-  return api<ProfileCompletionResponse>("/api/v1/auth/complete-profile/", {
+  return api<ProfileCompletionResponse>("/auth/complete-profile/", {
     method: "POST",
     body: JSON.stringify(body),
-  });
+  }, AUTH_API_URL);
 }
 
 export async function getMe() {
-  return api<AuthenticatedUser>("/api/v1/auth/me/");
+  return api<AuthenticatedUser>("/auth/me/", undefined, AUTH_API_URL);
 }
 
 export async function updateProfile(body: Partial<SeekerProfileCompletionBody> | Partial<OwnerProfileCompletionBody>) {
-  return api<AuthenticatedUser>("/api/v1/auth/update-profile/", {
+  return api<AuthenticatedUser>("/auth/update-profile/", {
     method: "PUT",
     body: JSON.stringify(body),
-  });
+  }, AUTH_API_URL);
 }
 
 export async function getOwnerDorms(params?: Record<string, string | number | boolean | null | undefined>) {
   const query = buildQuery(params);
-  return api<OwnerDorm[]>(`/api/users/owner/dorms/${query}`);
+  return api<OwnerDorm[]>(`/api/users/owner/dorms/${query}`, undefined, DORMS_API_URL);
 }
 
 function serializeDormPayload(payload: DormRequestBody) {
@@ -209,7 +216,7 @@ export async function createOwnerDorm(payload: DormRequestBody) {
   return api<OwnerDorm>("/api/users/owner/dorms/", {
     method: "POST",
     body,
-  });
+  }, DORMS_API_URL);
 }
 
 export async function updateOwnerDorm(id: number, payload: Partial<DormRequestBody> & { cover_photo?: File | null }) {
@@ -246,13 +253,13 @@ export async function updateOwnerDorm(id: number, payload: Partial<DormRequestBo
   return api<OwnerDorm>(`/api/users/owner/dorms/${id}/`, {
     method: "PATCH",
     body,
-  });
+  }, DORMS_API_URL);
 }
 
 export async function deleteOwnerDorm(id: number) {
   return api<void>(`/api/users/owner/dorms/${id}/`, {
     method: "DELETE",
-  });
+  }, DORMS_API_URL);
 }
 
 export async function createDormImage(payload: { dorm: number; image: File; caption?: string }) {
@@ -265,13 +272,13 @@ export async function createDormImage(payload: { dorm: number; image: File; capt
   return api<DormGalleryImage>("/api/users/owner/dorm-images/", {
     method: "POST",
     body: formData,
-  });
+  }, DORMS_API_URL);
 }
 
 export async function deleteDormImage(id: number) {
   return api<void>(`/api/users/owner/dorm-images/${id}/`, {
     method: "DELETE",
-  });
+  }, DORMS_API_URL);
 }
 
 export async function createDormRoomImage(payload: { room: number; image: File; caption?: string }) {
@@ -284,67 +291,67 @@ export async function createDormRoomImage(payload: { room: number; image: File; 
   return api<DormGalleryImage>("/api/users/owner/dorm-room-images/", {
     method: "POST",
     body: formData,
-  });
+  }, DORMS_API_URL);
 }
 
 export async function deleteDormRoomImage(id: number) {
   return api<void>(`/api/users/owner/dorm-room-images/${id}/`, {
     method: "DELETE",
-  });
+  }, DORMS_API_URL);
 }
 
 export async function createDormRoom(payload: DormRoomRequestBody) {
   return api<DormRoom>("/api/users/owner/dorm-rooms/", {
     method: "POST",
     body: JSON.stringify(payload),
-  });
+  }, DORMS_API_URL);
 }
 
 export async function updateDormRoom(id: number, payload: Partial<DormRoomRequestBody>) {
   return api<DormRoom>(`/api/users/owner/dorm-rooms/${id}/`, {
     method: "PATCH",
     body: JSON.stringify(payload),
-  });
+  }, DORMS_API_URL);
 }
 
 export async function deleteDormRoom(id: number) {
   return api<void>(`/api/users/owner/dorm-rooms/${id}/`, {
     method: "DELETE",
-  });
+  }, DORMS_API_URL);
 }
 
 export async function getOwnerBookingRequests(filters?: BookingRequestFilters) {
   const query = buildQuery(filters);
-  return api<BookingRequest[]>(`/api/users/owner/booking-requests/${query}`);
+  return api<BookingRequest[]>(`/api/users/owner/booking-requests/${query}`, undefined, BOOKING_API_URL);
 }
 
 export async function updateBookingRequest(id: number, payload: Partial<BookingRequestPayload> & { status?: BookingRequest["status"] }) {
   return api<BookingRequest>(`/api/users/owner/booking-requests/${id}/`, {
     method: "PATCH",
     body: JSON.stringify(payload),
-  });
+  }, BOOKING_API_URL);
 }
 
 export async function createBookingRequest(payload: BookingRequestPayload) {
   return api<BookingRequest>("/api/users/owner/booking-requests/", {
     method: "POST",
     body: JSON.stringify(payload),
-  });
+  }, BOOKING_API_URL);
 }
 
 export async function getSeekerDorms(params?: Record<string, string | number | boolean | null | undefined>) {
   const query = buildQuery(params);
-  return api<OwnerDorm[]>(`/api/users/seeker/dorms/${query}`);
+  return api<OwnerDorm[]>(`/api/users/seeker/dorms/${query}`, undefined, DORMS_API_URL);
 }
 
 export async function getSeekerBookingRequests(filters?: BookingRequestFilters) {
   const query = buildQuery(filters);
-  return api<BookingRequest[]>(`/api/users/seeker/booking-requests/${query}`);
+  return api<BookingRequest[]>(`/api/users/seeker/booking-requests/${query}`, undefined, BOOKING_API_URL);
 }
 
 export async function createSeekerBookingRequest(payload: BookingRequestPayload) {
   return api<BookingRequest>("/api/users/seeker/booking-requests/", {
     method: "POST",
     body: JSON.stringify(payload),
-  });
+  }, BOOKING_API_URL);
 }
