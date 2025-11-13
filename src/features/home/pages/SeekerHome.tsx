@@ -6,6 +6,7 @@ import { BottomMenu } from "../../../components/BottomMenu";
 import { FeedbackMessage } from "../../../components/FeedbackMessage";
 import { BookingStatusBadge } from "../../../components/BookingStatusBadge";
 import {
+  MEDIA_API_URL,
   createSeekerBookingRequest,
   getMe,
   getSeekerBookingRequests,

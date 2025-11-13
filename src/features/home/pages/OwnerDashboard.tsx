@@ -8,6 +8,7 @@ import { Icon } from "../../../components/Icon";
 import { formatCurrency, formatDate, formatDateRange } from "../../../lib/format";
 import {
   ApiError,
+  MEDIA_API_URL,
   createDormImage,
   createDormRoom,
   createDormRoomImage,
