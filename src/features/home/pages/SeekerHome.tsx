@@ -6,6 +6,7 @@ import { BottomMenu } from "../../../components/BottomMenu";
 import { FeedbackMessage } from "../../../components/FeedbackMessage";
 import { BookingStatusBadge } from "../../../components/BookingStatusBadge";
 import {
+  MEDIA_API_URL,
   createSeekerBookingRequest,
   getMe,
   getSeekerBookingRequests,
@@ -420,7 +421,11 @@ export function SeekerHome() {
 
                   {dorm.cover_photo ? (
                     <div className="overflow-hidden rounded-2xl border border-gray-100">
-                      <img src={dorm.cover_photo} alt={`${dorm.name} cover`} className="h-56 w-full object-cover" />
+                      <img
+                        src={`${MEDIA_API_URL}${dorm.cover_photo}`}
+                        alt={`${dorm.name} cover`}
+                        className="h-56 w-full object-cover"
+                      />
                     </div>
                   ) : null}
 
@@ -457,7 +462,11 @@ export function SeekerHome() {
                       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                         {dorm.images.map((image) => (
                           <div key={image.id} className="overflow-hidden rounded-xl border border-gray-200">
-                            <img src={image.image} alt={image.caption ?? `${dorm.name} image`} className="h-32 w-full object-cover" />
+                            <img
+                              src={`${MEDIA_API_URL}${image.image}`}
+                              alt={image.caption ?? `${dorm.name} image`}
+                              className="h-32 w-full object-cover"
+                            />
                             {image.caption ? (
                               <p className="truncate px-2 pb-2 pt-1 text-[10px] text-gray-600">{image.caption}</p>
                             ) : null}
@@ -515,7 +524,7 @@ export function SeekerHome() {
                                 {room.images.map((image) => (
                                   <div key={image.id} className="overflow-hidden rounded-xl border border-gray-200">
                                     <img
-                                      src={image.image}
+                                      src={`${MEDIA_API_URL}${image.image}`}
                                       alt={image.caption ?? `${room.name} image`}
                                       className="h-24 w-full object-cover"
                                     />
