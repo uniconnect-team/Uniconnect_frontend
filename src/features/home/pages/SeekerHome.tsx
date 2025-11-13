@@ -363,17 +363,9 @@ export function SeekerHome() {
                     selectedDormId === dorm.id ? "border-[color:var(--brand)] shadow" : "border-gray-200"
                   }`}
                 >
-                  {dorm.cover_photo ? (
-                    <img
-                      src={dorm.cover_photo}
-                      alt={`${dorm.name} cover`}
-                      className="mb-3 h-36 w-full rounded-xl object-cover"
-                    />
-                  ) : (
-                    <div className="mb-3 flex h-36 w-full items-center justify-center rounded-xl bg-gray-100 text-gray-400">
-                      <Icon name="image" className="h-6 w-6" />
-                    </div>
-                  )}
+                  <div className="mb-3 flex h-36 w-full items-center justify-center rounded-xl bg-[color:var(--brand)]/10 text-[color:var(--brand)]">
+                    <Icon name="building" className="h-8 w-8" />
+                  </div>
                   <p className="text-sm font-semibold text-[color:var(--ink)]">{dorm.name}</p>
                   {dorm.property_detail?.location ? (
                     <p className="text-xs text-gray-500">{dorm.property_detail.location}</p>
