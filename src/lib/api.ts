@@ -331,3 +331,20 @@ export async function createBookingRequest(payload: BookingRequestPayload) {
     body: JSON.stringify(payload),
   });
 }
+
+export async function getSeekerDorms(params?: Record<string, string | number | boolean | null | undefined>) {
+  const query = buildQuery(params);
+  return api<OwnerDorm[]>(`/api/users/seeker/dorms/${query}`);
+}
+
+export async function getSeekerBookingRequests(filters?: BookingRequestFilters) {
+  const query = buildQuery(filters);
+  return api<BookingRequest[]>(`/api/users/seeker/booking-requests/${query}`);
+}
+
+export async function createSeekerBookingRequest(payload: BookingRequestPayload) {
+  return api<BookingRequest>("/api/users/seeker/booking-requests/", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
