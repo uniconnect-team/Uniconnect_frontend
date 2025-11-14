@@ -50,14 +50,32 @@ const MEDIA_FILES_BASE = (() => {
     return MEDIA_API_BASE;
   }
 })();
+const MEDIA_STORAGE_PREFIX = "/mediafiles";
 const API_BASE = API_URL.replace(/\/+$/, "");
 
-function buildMediaFileUrl(path: string): string {
-  const normalized = path.startsWith("/") ? path : `/${path}`;
-  if (normalized.startsWith("/media/")) {
-    return `${MEDIA_FILES_BASE}${normalized}`;
+function extractMediaPathSegments(path: string): { sanitized: string; recognized: boolean } {
+  const [rawPath] = path.split(/[?#]/, 1);
+  const withoutLeading = rawPath.replace(/^\/+/, "");
+
+  if (!withoutLeading) {
+    return { sanitized: "", recognized: true };
   }
-  return `${MEDIA_FILES_BASE}/media${normalized}`;
+
+  if (withoutLeading.startsWith("mediafiles/")) {
+    return { sanitized: withoutLeading.slice("mediafiles/".length), recognized: true };
+  }
+
+  if (withoutLeading.startsWith("media/")) {
+    return { sanitized: withoutLeading.slice("media/".length), recognized: true };
+  }
+
+  return { sanitized: withoutLeading, recognized: false };
+}
+
+function buildMediaFileUrl(path: string, extra = ""): string {
+  const { sanitized } = extractMediaPathSegments(path);
+  const prefix = sanitized ? `${MEDIA_STORAGE_PREFIX}/${sanitized}` : MEDIA_STORAGE_PREFIX;
+  return `${MEDIA_FILES_BASE}${prefix}${extra}`;
 }
 
 export const TRANSPARENT_PIXEL =
@@ -103,8 +121,9 @@ export function resolveMediaUrl(path?: string | null): string | undefined {
   if (ABSOLUTE_URL_PATTERN.test(trimmed)) {
     try {
       const absolute = new URL(trimmed);
-      if (absolute.pathname.startsWith("/media/")) {
-        return `${MEDIA_FILES_BASE}${absolute.pathname}${absolute.search}${absolute.hash}`;
+      const { sanitized, recognized } = extractMediaPathSegments(absolute.pathname);
+      if (recognized) {
+        return buildMediaFileUrl(sanitized, `${absolute.search}${absolute.hash}`);
       }
     } catch (error) {
       return trimmed;
@@ -114,6 +133,25 @@ export function resolveMediaUrl(path?: string | null): string | undefined {
   }
 
   return buildMediaFileUrl(trimmed);
+}
+
+function resolveMediaServiceLegacyUrl(path?: string | null): string | undefined {
+  if (!path) {
+    return undefined;
+  }
+
+  const trimmed = path.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  if (ABSOLUTE_URL_PATTERN.test(trimmed)) {
+    return trimmed;
+  }
+
+  const { sanitized } = extractMediaPathSegments(trimmed);
+  const legacyPath = sanitized ? `/media/${sanitized}` : "/media";
+  return `${MEDIA_API_BASE}${legacyPath}`;
 }
 
 export function resolveLegacyMediaUrl(path?: string | null): string | undefined {
@@ -130,7 +168,9 @@ export function resolveLegacyMediaUrl(path?: string | null): string | undefined 
     return trimmed;
   }
 
-  return joinBaseWithPath(API_BASE, trimmed);
+  const { sanitized } = extractMediaPathSegments(trimmed);
+  const legacyPath = sanitized ? `/media/${sanitized}` : "/media";
+  return `${API_BASE}${legacyPath}`;
 }
 
 export function getMediaSources(path?: string | null): {
@@ -138,11 +178,14 @@ export function getMediaSources(path?: string | null): {
   fallback?: string;
 } {
   const primary = resolveMediaUrl(path);
-  const fallbackCandidate = resolveLegacyMediaUrl(path);
+  const fallbackCandidates = [resolveMediaServiceLegacyUrl(path), resolveLegacyMediaUrl(path)];
+  const fallback = fallbackCandidates.find(
+    (candidate) => candidate && candidate !== primary,
+  );
 
   return {
     primary,
-    fallback: fallbackCandidate && fallbackCandidate !== primary ? fallbackCandidate : undefined,
+    fallback,
   };
 }
 
