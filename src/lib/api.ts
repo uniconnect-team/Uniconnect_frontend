@@ -30,7 +30,35 @@ export const CORE_API_URL = import.meta.env.VITE_CORE_API_URL ?? "http://localho
 
 const ABSOLUTE_URL_PATTERN = /^https?:\/\//i;
 const MEDIA_API_BASE = MEDIA_API_URL.replace(/\/+$/, "");
+const MEDIA_FILES_BASE = (() => {
+  try {
+    const parsed = new URL(MEDIA_API_URL);
+    return parsed.origin;
+  } catch (error) {
+    if (MEDIA_API_URL.startsWith("//")) {
+      try {
+        return new URL(`https:${MEDIA_API_URL}`).origin;
+      } catch {
+        return `https:${MEDIA_API_URL}`.replace(/\/+$/, "");
+      }
+    }
+
+    if (MEDIA_API_URL.startsWith("/")) {
+      return "";
+    }
+
+    return MEDIA_API_BASE;
+  }
+})();
 const API_BASE = API_URL.replace(/\/+$/, "");
+
+function buildMediaFileUrl(path: string): string {
+  const normalized = path.startsWith("/") ? path : `/${path}`;
+  if (normalized.startsWith("/media/")) {
+    return `${MEDIA_FILES_BASE}${normalized}`;
+  }
+  return `${MEDIA_FILES_BASE}/media${normalized}`;
+}
 
 export const TRANSPARENT_PIXEL =
   "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
@@ -40,6 +68,26 @@ function joinBaseWithPath(base: string, path: string) {
     return `${base}${path}`;
   }
   return `${base}/${path}`;
+}
+
+function buildRequestUrl(baseUrl: string, path: string): string {
+  if (!path) {
+    return baseUrl;
+  }
+
+  if (ABSOLUTE_URL_PATTERN.test(path)) {
+    return path;
+  }
+
+  try {
+    return new URL(path, baseUrl).toString();
+  } catch {
+    const normalizedBase = baseUrl.replace(/\/+$/, "");
+    if (path.startsWith("/")) {
+      return `${normalizedBase}${path}`;
+    }
+    return `${normalizedBase}/${path}`;
+  }
 }
 
 export function resolveMediaUrl(path?: string | null): string | undefined {
@@ -56,7 +104,7 @@ export function resolveMediaUrl(path?: string | null): string | undefined {
     try {
       const absolute = new URL(trimmed);
       if (absolute.pathname.startsWith("/media/")) {
-        return `${MEDIA_API_BASE}${absolute.pathname}${absolute.search}${absolute.hash}`;
+        return `${MEDIA_FILES_BASE}${absolute.pathname}${absolute.search}${absolute.hash}`;
       }
     } catch (error) {
       return trimmed;
@@ -65,8 +113,7 @@ export function resolveMediaUrl(path?: string | null): string | undefined {
     return trimmed;
   }
 
-  const normalizedPath = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
-  return `${MEDIA_API_BASE}${normalizedPath}`;
+  return buildMediaFileUrl(trimmed);
 }
 
 export function resolveLegacyMediaUrl(path?: string | null): string | undefined {
@@ -165,7 +212,9 @@ export async function api<T>(path: string, init?: RequestInit, baseUrl: string =
     (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${baseUrl}${path}`, {
+  const requestUrl = buildRequestUrl(baseUrl, path);
+
+  const res = await fetch(requestUrl, {
     headers,
     credentials: "omit",
     ...init,
