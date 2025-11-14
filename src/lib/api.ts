@@ -23,7 +23,7 @@ export const AUTH_API_URL = import.meta.env.VITE_AUTH_API_URL ?? "http://localho
 export const PROFILES_API_URL = import.meta.env.VITE_PROFILES_API_URL ?? "http://localhost:8004";
 export const DORMS_API_URL = import.meta.env.VITE_DORMS_API_URL ?? "http://localhost:8002";
 export const BOOKING_API_URL = import.meta.env.VITE_BOOKING_API_URL ?? "http://localhost:8003";
-export const MEDIA_API_URL = import.meta.env.VITE_MEDIA_API_URL ?? "http://localhost:8005";
+export const MEDIA_API_URL = import.meta.env.VITE_MEDIA_API_URL ?? API_URL;
 export const NOTIFICATIONS_API_URL =
   import.meta.env.VITE_NOTIFICATIONS_API_URL ?? "http://localhost:8006";
 export const CORE_API_URL = import.meta.env.VITE_CORE_API_URL ?? "http://localhost:8007";
@@ -50,7 +50,7 @@ const MEDIA_FILES_BASE = (() => {
     return MEDIA_API_BASE;
   }
 })();
-const MEDIA_STORAGE_PREFIX = "/mediafiles";
+const MEDIA_STORAGE_PREFIX = "/media";
 const API_BASE = API_URL.replace(/\/+$/, "");
 
 function extractMediaPathSegments(path: string): { sanitized: string; recognized: boolean } {
@@ -430,42 +430,125 @@ export async function deleteOwnerDorm(id: number) {
   }, DORMS_API_URL);
 }
 
-export async function createDormImage(payload: { dorm: number; image: File; caption?: string }) {
+function buildDormImageFormData(payload: {
+  dorm?: number;
+  room?: number;
+  image?: File;
+  caption?: string | null;
+}) {
   const formData = new FormData();
-  formData.append("dorm", String(payload.dorm));
-  formData.append("image", payload.image);
-  if (payload.caption) {
-    formData.append("caption", payload.caption);
+  if (typeof payload.dorm === "number") {
+    formData.append("dorm", String(payload.dorm));
   }
-  return api<DormGalleryImage>("/media/owner/dorm-images/", {
-    method: "POST",
-    body: formData,
-  }, MEDIA_API_URL);
-}
-
-export async function deleteDormImage(id: number) {
-  return api<void>(`/media/owner/dorm-images/${id}/`, {
-    method: "DELETE",
-  }, MEDIA_API_URL);
-}
-
-export async function createDormRoomImage(payload: { room: number; image: File; caption?: string }) {
-  const formData = new FormData();
-  formData.append("room", String(payload.room));
-  formData.append("image", payload.image);
-  if (payload.caption) {
-    formData.append("caption", payload.caption);
+  if (typeof payload.room === "number") {
+    formData.append("room", String(payload.room));
   }
-  return api<DormGalleryImage>("/media/owner/dorm-room-images/", {
-    method: "POST",
-    body: formData,
-  }, MEDIA_API_URL);
+  if (payload.image instanceof File) {
+    formData.append("image", payload.image);
+  }
+  if (payload.caption !== undefined) {
+    formData.append("caption", payload.caption ?? "");
+  }
+  return formData;
 }
 
-export async function deleteDormRoomImage(id: number) {
-  return api<void>(`/media/owner/dorm-room-images/${id}/`, {
-    method: "DELETE",
-  }, MEDIA_API_URL);
+function hasFormDataEntries(formData: FormData) {
+  for (const _ of formData.keys()) {
+    return true;
+  }
+  return false;
+}
+
+export async function getOwnerDormImages(params?: { dorm?: number }) {
+  const query = buildQuery(params);
+  return api<DormGalleryImage[]>(`/api/users/owner/dorm-images/${query}`);
+}
+
+export async function createOwnerDormImage(payload: {
+  dorm: number;
+  image: File;
+  caption?: string | null;
+}) {
+  const formData = buildDormImageFormData(payload);
+  return api<DormGalleryImage>(
+    "/api/users/owner/dorm-images/",
+    {
+      method: "POST",
+      body: formData,
+    },
+  );
+}
+
+export async function updateOwnerDormImage(
+  id: number,
+  payload: { dorm?: number; image?: File; caption?: string | null },
+) {
+  const formData = buildDormImageFormData(payload);
+  if (!hasFormDataEntries(formData)) {
+    throw new Error("No updates provided for dorm image");
+  }
+  return api<DormGalleryImage>(
+    `/api/users/owner/dorm-images/${id}/`,
+    {
+      method: "PATCH",
+      body: formData,
+    },
+  );
+}
+
+export async function deleteOwnerDormImage(id: number) {
+  return api<void>(
+    `/api/users/owner/dorm-images/${id}/`,
+    {
+      method: "DELETE",
+    },
+  );
+}
+
+export async function getOwnerDormRoomImages(params?: { room?: number }) {
+  const query = buildQuery(params);
+  return api<DormGalleryImage[]>(`/api/users/owner/dorm-room-images/${query}`);
+}
+
+export async function createOwnerDormRoomImage(payload: {
+  room: number;
+  image: File;
+  caption?: string | null;
+}) {
+  const formData = buildDormImageFormData(payload);
+  return api<DormGalleryImage>(
+    "/api/users/owner/dorm-room-images/",
+    {
+      method: "POST",
+      body: formData,
+    },
+  );
+}
+
+export async function updateOwnerDormRoomImage(
+  id: number,
+  payload: { room?: number; image?: File; caption?: string | null },
+) {
+  const formData = buildDormImageFormData(payload);
+  if (!hasFormDataEntries(formData)) {
+    throw new Error("No updates provided for dorm room image");
+  }
+  return api<DormGalleryImage>(
+    `/api/users/owner/dorm-room-images/${id}/`,
+    {
+      method: "PATCH",
+      body: formData,
+    },
+  );
+}
+
+export async function deleteOwnerDormRoomImage(id: number) {
+  return api<void>(
+    `/api/users/owner/dorm-room-images/${id}/`,
+    {
+      method: "DELETE",
+    },
+  );
 }
 
 export async function createDormRoom(payload: DormRoomRequestBody) {

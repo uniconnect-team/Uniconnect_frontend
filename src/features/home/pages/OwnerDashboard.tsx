@@ -9,13 +9,13 @@ import { formatCurrency, formatDate, formatDateRange } from "../../../lib/format
 import {
   ApiError,
   TRANSPARENT_PIXEL,
-  createDormImage,
+  createOwnerDormImage,
   createDormRoom,
-  createDormRoomImage,
+  createOwnerDormRoomImage,
   createOwnerDorm,
-  deleteDormImage,
+  deleteOwnerDormImage,
   deleteDormRoom,
-  deleteDormRoomImage,
+  deleteOwnerDormRoomImage,
   deleteOwnerDorm,
   getMediaSources,
   getMe,
@@ -24,6 +24,8 @@ import {
   updateBookingRequest,
   updateDormRoom,
   updateOwnerDorm,
+  updateOwnerDormImage,
+  updateOwnerDormRoomImage,
 } from "../../../lib/api";
 import type {
   AuthenticatedUser,
@@ -701,9 +703,11 @@ function DormCard({
   onCreateRoom,
   onUpdateRoom,
   onDeleteRoom,
+  onUpdateDormImage,
   onUploadDormImage,
   onDeleteDormImage,
   onUploadRoomImage,
+  onUpdateRoomImage,
   onDeleteRoomImage,
 }: {
   dorm: OwnerDorm;
@@ -712,9 +716,20 @@ function DormCard({
   onCreateRoom: (dormId: number, values: RoomFormState) => Promise<void>;
   onUpdateRoom: (dormId: number, roomId: number, values: RoomFormState) => Promise<void>;
   onDeleteRoom: (dormId: number, roomId: number) => Promise<void>;
+  onUpdateDormImage: (
+    dormId: number,
+    imageId: number,
+    updates: { caption?: string; file?: File | null },
+  ) => Promise<void>;
   onUploadDormImage: (dormId: number, file: File, caption: string) => Promise<void>;
   onDeleteDormImage: (dormId: number, imageId: number) => Promise<void>;
   onUploadRoomImage: (dormId: number, roomId: number, file: File, caption: string) => Promise<void>;
+  onUpdateRoomImage: (
+    dormId: number,
+    roomId: number,
+    imageId: number,
+    updates: { caption?: string; file?: File | null },
+  ) => Promise<void>;
   onDeleteRoomImage: (dormId: number, roomId: number, imageId: number) => Promise<void>;
 }) {
   const [roomFormMode, setRoomFormMode] = useState<"create" | "edit" | null>(null);
@@ -802,6 +817,24 @@ function DormCard({
     }
   }
 
+  async function handleDormImageEdit(image: DormGalleryImage) {
+    const nextCaption = window.prompt("Update caption", image.caption ?? "");
+    if (nextCaption === null) {
+      return;
+    }
+
+    const normalizedCaption = nextCaption.trim();
+    setDormImageSubmitting(true);
+    setDormImageError(null);
+    try {
+      await onUpdateDormImage(dorm.id, image.id, { caption: normalizedCaption });
+    } catch (error) {
+      setDormImageError(getErrorMessage(error));
+    } finally {
+      setDormImageSubmitting(false);
+    }
+  }
+
   function updateRoomImageState(roomId: number, updater: (state: {
     file: File | null;
     caption: string;
@@ -852,6 +885,26 @@ function DormCard({
       }
     } catch (error) {
       updateRoomImageState(roomId, (prev) => ({ ...prev, submitting: false, error: getErrorMessage(error) }));
+    }
+  }
+
+  async function handleRoomImageEdit(roomId: number, image: DormGalleryImage) {
+    const nextCaption = window.prompt("Update caption", image.caption ?? "");
+    if (nextCaption === null) {
+      return;
+    }
+
+    const normalizedCaption = nextCaption.trim();
+    updateRoomImageState(roomId, (prev) => ({ ...prev, submitting: true, error: null }));
+    try {
+      await onUpdateRoomImage(dorm.id, roomId, image.id, { caption: normalizedCaption });
+      updateRoomImageState(roomId, (prev) => ({ ...prev, submitting: false, error: null }));
+    } catch (error) {
+      updateRoomImageState(roomId, (prev) => ({
+        ...prev,
+        submitting: false,
+        error: getErrorMessage(error),
+      }));
     }
   }
 
@@ -961,6 +1014,14 @@ function DormCard({
                     className="h-24 w-full object-cover"
                     onError={(event) => handleMediaImageError(event, imageSources.fallback)}
                   />
+                  <button
+                    type="button"
+                    onClick={() => handleDormImageEdit(image)}
+                    className="absolute left-2 top-2 rounded-full bg-white/80 p-1 text-xs text-[color:var(--brand)] shadow"
+                    aria-label="Edit caption"
+                  >
+                    <Icon name="edit" className="h-3 w-3" />
+                  </button>
                   <button
                     type="button"
                     onClick={() => onDeleteDormImage(dorm.id, image.id)}
@@ -1102,6 +1163,14 @@ function DormCard({
                                 className="h-24 w-full object-cover"
                                 onError={(event) => handleMediaImageError(event, imageSources.fallback)}
                               />
+                              <button
+                                type="button"
+                                onClick={() => handleRoomImageEdit(room.id, image)}
+                                className="absolute left-2 top-2 rounded-full bg-white/80 p-1 text-xs text-[color:var(--brand)] shadow"
+                                aria-label="Edit caption"
+                              >
+                                <Icon name="edit" className="h-3 w-3" />
+                              </button>
                               <button
                                 type="button"
                                 onClick={() => onDeleteRoomImage(dorm.id, room.id, image.id)}
@@ -1437,88 +1506,67 @@ export function OwnerDashboard() {
     await reloadDorms();
   }
 
-  async function handleUploadDormImage(dormId: number, file: File, caption: string) {
-    const createdImage = await createDormImage({ dorm: dormId, image: file, caption: caption || undefined });
-    setDorms((prevDorms) =>
-      prevDorms.map((dorm) => {
-        if (dorm.id !== dormId) {
-          return dorm;
-        }
+  async function handleUpdateDormImage(
+    _dormId: number,
+    imageId: number,
+    updates: { caption?: string; file?: File | null },
+  ) {
+    const payload: { caption?: string | null; image?: File } = {};
+    if (updates.caption !== undefined) {
+      payload.caption = updates.caption;
+    }
+    if (updates.file instanceof File) {
+      payload.image = updates.file;
+    }
+    if (payload.caption === undefined && payload.image === undefined) {
+      throw new Error("No updates provided for dorm image");
+    }
 
-        const nextImages: DormGalleryImage[] = [...(dorm.images ?? []), createdImage];
-        return { ...dorm, images: nextImages };
-      }),
-    );
+    await updateOwnerDormImage(imageId, payload);
+    await reloadDorms();
   }
 
-  async function handleDeleteDormImage(dormId: number, imageId: number) {
-    if (!window.confirm("Remove this dorm photo?")) return;
-    await deleteDormImage(imageId);
-    setDorms((prevDorms) =>
-      prevDorms.map((dorm) => {
-        if (dorm.id !== dormId) {
-          return dorm;
-        }
+  async function handleUploadDormImage(dormId: number, file: File, caption: string) {
+    await createOwnerDormImage({ dorm: dormId, image: file, caption: caption ? caption : null });
+    await reloadDorms();
+  }
 
-        return {
-          ...dorm,
-          images: (dorm.images ?? []).filter((image) => image.id !== imageId),
-        };
-      }),
-    );
+  async function handleDeleteDormImage(_dormId: number, imageId: number) {
+    if (!window.confirm("Remove this dorm photo?")) return;
+    await deleteOwnerDormImage(imageId);
+    await reloadDorms();
+  }
+
+  async function handleUpdateRoomImage(
+    _dormId: number,
+    roomId: number,
+    imageId: number,
+    updates: { caption?: string; file?: File | null },
+  ) {
+    const payload: { caption?: string | null; image?: File; room?: number } = { room: roomId };
+    if (updates.caption !== undefined) {
+      payload.caption = updates.caption;
+    }
+    if (updates.file instanceof File) {
+      payload.image = updates.file;
+    }
+    if (payload.caption === undefined && payload.image === undefined) {
+      throw new Error("No updates provided for dorm room image");
+    }
+
+    await updateOwnerDormRoomImage(imageId, payload);
+    await reloadDorms();
   }
 
   async function handleUploadRoomImage(dormId: number, roomId: number, file: File, caption: string) {
-    const createdImage = await createDormRoomImage({ room: roomId, image: file, caption: caption || undefined });
-    setDorms((prevDorms) =>
-      prevDorms.map((dorm) => {
-        if (dorm.id !== dormId) {
-          return dorm;
-        }
-
-        const rooms = dorm.rooms?.map((room) => {
-          if (room.id !== roomId) {
-            return room;
-          }
-
-          const nextImages: DormGalleryImage[] = [...(room.images ?? []), createdImage];
-          return { ...room, images: nextImages };
-        });
-
-        return {
-          ...dorm,
-          rooms,
-        };
-      }),
-    );
+    await createOwnerDormRoomImage({ room: roomId, image: file, caption: caption ? caption : null });
+    await reloadDorms();
   }
 
-  async function handleDeleteRoomImage(dormId: number, roomId: number, imageId: number) {
+  async function handleDeleteRoomImage(_dormId: number, roomId: number, imageId: number) {
     if (!window.confirm("Remove this room photo?")) return;
-    await deleteDormRoomImage(imageId);
-    setDorms((prevDorms) =>
-      prevDorms.map((dorm) => {
-        if (dorm.id !== dormId) {
-          return dorm;
-        }
-
-        const rooms = dorm.rooms?.map((room) => {
-          if (room.id !== roomId) {
-            return room;
-          }
-
-          return {
-            ...room,
-            images: (room.images ?? []).filter((image) => image.id !== imageId),
-          };
-        });
-
-        return {
-          ...dorm,
-          rooms,
-        };
-      }),
-    );
+    await deleteOwnerDormRoomImage(imageId);
+    await reloadDorms();
   }
 
   async function handleUpdateBooking(id: number, status: BookingRequest["status"], ownerNote: string) {
@@ -1671,9 +1719,11 @@ export function OwnerDashboard() {
                   onCreateRoom={handleCreateRoom}
                   onUpdateRoom={handleUpdateRoom}
                   onDeleteRoom={handleDeleteRoom}
+                  onUpdateDormImage={handleUpdateDormImage}
                   onUploadDormImage={handleUploadDormImage}
                   onDeleteDormImage={handleDeleteDormImage}
                   onUploadRoomImage={handleUploadRoomImage}
+                  onUpdateRoomImage={handleUpdateRoomImage}
                   onDeleteRoomImage={handleDeleteRoomImage}
                 />
               ))}
