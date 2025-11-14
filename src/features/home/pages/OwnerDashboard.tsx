@@ -21,7 +21,6 @@ import {
   getMe,
   getOwnerBookingRequests,
   getOwnerDorms,
-  resolveMediaUrl,
   updateBookingRequest,
   updateDormRoom,
   updateOwnerDorm,
