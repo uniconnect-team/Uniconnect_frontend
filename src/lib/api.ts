@@ -70,6 +70,26 @@ function joinBaseWithPath(base: string, path: string) {
   return `${base}/${path}`;
 }
 
+function buildRequestUrl(baseUrl: string, path: string): string {
+  if (!path) {
+    return baseUrl;
+  }
+
+  if (ABSOLUTE_URL_PATTERN.test(path)) {
+    return path;
+  }
+
+  try {
+    return new URL(path, baseUrl).toString();
+  } catch {
+    const normalizedBase = baseUrl.replace(/\/+$/, "");
+    if (path.startsWith("/")) {
+      return `${normalizedBase}${path}`;
+    }
+    return `${normalizedBase}/${path}`;
+  }
+}
+
 export function resolveMediaUrl(path?: string | null): string | undefined {
   if (!path) {
     return undefined;
@@ -192,7 +212,9 @@ export async function api<T>(path: string, init?: RequestInit, baseUrl: string =
     (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${baseUrl}${path}`, {
+  const requestUrl = buildRequestUrl(baseUrl, path);
+
+  const res = await fetch(requestUrl, {
     headers,
     credentials: "omit",
     ...init,
