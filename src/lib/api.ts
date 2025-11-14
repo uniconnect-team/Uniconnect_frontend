@@ -29,21 +29,36 @@ export const NOTIFICATIONS_API_URL =
 export const CORE_API_URL = import.meta.env.VITE_CORE_API_URL ?? "http://localhost:8007";
 
 const ABSOLUTE_URL_PATTERN = /^https?:\/\//i;
+const MEDIA_API_BASE = MEDIA_API_URL.replace(/\/+$/, "");
 
 export function resolveMediaUrl(path?: string | null): string | undefined {
   if (!path) {
     return undefined;
   }
 
-  if (ABSOLUTE_URL_PATTERN.test(path)) {
-    return path;
+  const trimmed = path.trim();
+  if (!trimmed) {
+    return undefined;
   }
 
-  if (path.startsWith("/")) {
-    return `${MEDIA_API_URL}${path}`;
+  if (ABSOLUTE_URL_PATTERN.test(trimmed)) {
+    try {
+      const absolute = new URL(trimmed);
+      if (absolute.pathname.startsWith("/media/")) {
+        return `${MEDIA_API_BASE}${absolute.pathname}${absolute.search}${absolute.hash}`;
+      }
+    } catch (error) {
+      return trimmed;
+    }
+
+    return trimmed;
   }
 
-  return `${MEDIA_API_URL}/${path}`;
+  if (trimmed.startsWith("/")) {
+    return `${MEDIA_API_BASE}${trimmed}`;
+  }
+
+  return `${MEDIA_API_BASE}/${trimmed}`;
 }
 
 export class ApiError extends Error {
