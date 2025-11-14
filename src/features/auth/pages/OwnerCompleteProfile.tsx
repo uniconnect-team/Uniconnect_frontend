@@ -26,6 +26,7 @@ export function OwnerCompleteProfile() {
 
     getMe()
       .then((user) => {
+        localStorage.setItem("user", JSON.stringify(user));
         if (user.role !== "OWNER") {
           navigate("/choose-role", { replace: true });
           return;

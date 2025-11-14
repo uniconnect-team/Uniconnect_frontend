@@ -18,7 +18,34 @@ import type {
   ProfileCompletionResponse,
 } from "./types";
 
-export const API_URL = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
+// Microservice URLs
+const AUTH_SERVICE_URL = import.meta.env.VITE_AUTH_SERVICE_URL ?? "http://localhost:9001";
+const BOOKING_SERVICE_URL = import.meta.env.VITE_BOOKING_SERVICE_URL ?? "http://localhost:9002";
+const DORM_SERVICE_URL = import.meta.env.VITE_DORM_SERVICE_URL ?? "http://localhost:9003";
+const NOTIFICATION_SERVICE_URL = import.meta.env.VITE_NOTIFICATION_SERVICE_URL ?? "http://localhost:9004";
+const PROFILE_SERVICE_URL = import.meta.env.VITE_PROFILE_SERVICE_URL ?? "http://localhost:9005";
+
+// Route requests to the correct microservice based on path
+function getServiceUrl(path: string): string {
+  if (path.startsWith("/api/v1/auth/")) {
+    return AUTH_SERVICE_URL;
+  }
+  if (path.includes("/booking-requests")) {
+    return BOOKING_SERVICE_URL;
+  }
+  if (path.includes("/dorms") || path.includes("/dorm-rooms") || path.includes("/dorm-images") || path.includes("/dorm-room-images")) {
+    return DORM_SERVICE_URL;
+  }
+  if (path.includes("/notifications")) {
+    return NOTIFICATION_SERVICE_URL;
+  }
+  if (path.includes("/me") || path.includes("/complete-profile") || path.includes("/update-profile")) {
+    return PROFILE_SERVICE_URL;
+  }
+  
+  // Fallback to auth service
+  return AUTH_SERVICE_URL;
+}
 
 export class ApiError extends Error {
   status: number;
@@ -86,7 +113,9 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
     (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_URL}${path}`, {
+  const serviceUrl = getServiceUrl(path);
+  
+  const res = await fetch(`${serviceUrl}${path}`, {
     headers,
     credentials: "omit",
     ...init,
@@ -160,19 +189,19 @@ export async function login(body: LoginBody) {
 }
 
 export async function completeProfile(body: SeekerProfileCompletionBody | OwnerProfileCompletionBody): Promise<ProfileCompletionResponse> {
-  return api<ProfileCompletionResponse>("/api/v1/auth/complete-profile/", {
+  return api<ProfileCompletionResponse>("/api/users/complete-profile/", {
     method: "POST",
     body: JSON.stringify(body),
   });
 }
 
 export async function getMe() {
-  return api<AuthenticatedUser>("/api/v1/auth/me/");
+  return api<AuthenticatedUser>("/api/users/me/");
 }
 
 export async function updateProfile(body: Partial<SeekerProfileCompletionBody> | Partial<OwnerProfileCompletionBody>) {
-  return api<AuthenticatedUser>("/api/v1/auth/update-profile/", {
-    method: "PUT",
+  return api<AuthenticatedUser>("/api/users/complete-profile/", {
+    method: "POST",
     body: JSON.stringify(body),
   });
 }
