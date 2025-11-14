@@ -12,6 +12,7 @@ import {
   getMe,
   getSeekerBookingRequests,
   getSeekerDorms,
+  resolveMediaUrl,
 } from "../../../lib/api";
 import type {
   AuthenticatedUser,
