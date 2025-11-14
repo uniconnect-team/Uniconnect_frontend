@@ -30,7 +30,53 @@ export const CORE_API_URL = import.meta.env.VITE_CORE_API_URL ?? "http://localho
 
 const ABSOLUTE_URL_PATTERN = /^https?:\/\//i;
 const MEDIA_API_BASE = MEDIA_API_URL.replace(/\/+$/, "");
+const MEDIA_FILES_BASE = (() => {
+  try {
+    const parsed = new URL(MEDIA_API_URL);
+    return parsed.origin;
+  } catch (error) {
+    if (MEDIA_API_URL.startsWith("//")) {
+      try {
+        return new URL(`https:${MEDIA_API_URL}`).origin;
+      } catch {
+        return `https:${MEDIA_API_URL}`.replace(/\/+$/, "");
+      }
+    }
+
+    if (MEDIA_API_URL.startsWith("/")) {
+      return "";
+    }
+
+    return MEDIA_API_BASE;
+  }
+})();
+const MEDIA_STORAGE_PREFIX = "/mediafiles";
 const API_BASE = API_URL.replace(/\/+$/, "");
+
+function extractMediaPathSegments(path: string): { sanitized: string; recognized: boolean } {
+  const [rawPath] = path.split(/[?#]/, 1);
+  const withoutLeading = rawPath.replace(/^\/+/, "");
+
+  if (!withoutLeading) {
+    return { sanitized: "", recognized: true };
+  }
+
+  if (withoutLeading.startsWith("mediafiles/")) {
+    return { sanitized: withoutLeading.slice("mediafiles/".length), recognized: true };
+  }
+
+  if (withoutLeading.startsWith("media/")) {
+    return { sanitized: withoutLeading.slice("media/".length), recognized: true };
+  }
+
+  return { sanitized: withoutLeading, recognized: false };
+}
+
+function buildMediaFileUrl(path: string, extra = ""): string {
+  const { sanitized } = extractMediaPathSegments(path);
+  const prefix = sanitized ? `${MEDIA_STORAGE_PREFIX}/${sanitized}` : MEDIA_STORAGE_PREFIX;
+  return `${MEDIA_FILES_BASE}${prefix}${extra}`;
+}
 
 export const TRANSPARENT_PIXEL =
   "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
@@ -40,6 +86,26 @@ function joinBaseWithPath(base: string, path: string) {
     return `${base}${path}`;
   }
   return `${base}/${path}`;
+}
+
+function buildRequestUrl(baseUrl: string, path: string): string {
+  if (!path) {
+    return baseUrl;
+  }
+
+  if (ABSOLUTE_URL_PATTERN.test(path)) {
+    return path;
+  }
+
+  try {
+    return new URL(path, baseUrl).toString();
+  } catch {
+    const normalizedBase = baseUrl.replace(/\/+$/, "");
+    if (path.startsWith("/")) {
+      return `${normalizedBase}${path}`;
+    }
+    return `${normalizedBase}/${path}`;
+  }
 }
 
 export function resolveMediaUrl(path?: string | null): string | undefined {
@@ -55,8 +121,9 @@ export function resolveMediaUrl(path?: string | null): string | undefined {
   if (ABSOLUTE_URL_PATTERN.test(trimmed)) {
     try {
       const absolute = new URL(trimmed);
-      if (absolute.pathname.startsWith("/media/")) {
-        return `${MEDIA_API_BASE}${absolute.pathname}${absolute.search}${absolute.hash}`;
+      const { sanitized, recognized } = extractMediaPathSegments(absolute.pathname);
+      if (recognized) {
+        return buildMediaFileUrl(sanitized, `${absolute.search}${absolute.hash}`);
       }
     } catch (error) {
       return trimmed;
@@ -65,8 +132,26 @@ export function resolveMediaUrl(path?: string | null): string | undefined {
     return trimmed;
   }
 
-  const normalizedPath = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
-  return `${MEDIA_API_BASE}${normalizedPath}`;
+  return buildMediaFileUrl(trimmed);
+}
+
+function resolveMediaServiceLegacyUrl(path?: string | null): string | undefined {
+  if (!path) {
+    return undefined;
+  }
+
+  const trimmed = path.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  if (ABSOLUTE_URL_PATTERN.test(trimmed)) {
+    return trimmed;
+  }
+
+  const { sanitized } = extractMediaPathSegments(trimmed);
+  const legacyPath = sanitized ? `/media/${sanitized}` : "/media";
+  return `${MEDIA_API_BASE}${legacyPath}`;
 }
 
 export function resolveLegacyMediaUrl(path?: string | null): string | undefined {
@@ -83,7 +168,9 @@ export function resolveLegacyMediaUrl(path?: string | null): string | undefined 
     return trimmed;
   }
 
-  return joinBaseWithPath(API_BASE, trimmed);
+  const { sanitized } = extractMediaPathSegments(trimmed);
+  const legacyPath = sanitized ? `/media/${sanitized}` : "/media";
+  return `${API_BASE}${legacyPath}`;
 }
 
 export function getMediaSources(path?: string | null): {
@@ -91,11 +178,14 @@ export function getMediaSources(path?: string | null): {
   fallback?: string;
 } {
   const primary = resolveMediaUrl(path);
-  const fallbackCandidate = resolveLegacyMediaUrl(path);
+  const fallbackCandidates = [resolveMediaServiceLegacyUrl(path), resolveLegacyMediaUrl(path)];
+  const fallback = fallbackCandidates.find(
+    (candidate) => candidate && candidate !== primary,
+  );
 
   return {
     primary,
-    fallback: fallbackCandidate && fallbackCandidate !== primary ? fallbackCandidate : undefined,
+    fallback,
   };
 }
 
@@ -165,7 +255,9 @@ export async function api<T>(path: string, init?: RequestInit, baseUrl: string =
     (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${baseUrl}${path}`, {
+  const requestUrl = buildRequestUrl(baseUrl, path);
+
+  const res = await fetch(requestUrl, {
     headers,
     credentials: "omit",
     ...init,
