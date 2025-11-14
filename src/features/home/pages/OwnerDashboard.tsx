@@ -8,7 +8,7 @@ import { Icon } from "../../../components/Icon";
 import { formatCurrency, formatDate, formatDateRange } from "../../../lib/format";
 import {
   ApiError,
-  MEDIA_API_URL,
+  TRANSPARENT_PIXEL,
   createDormImage,
   createDormRoom,
   createDormRoomImage,
@@ -17,6 +17,7 @@ import {
   deleteDormRoom,
   deleteDormRoomImage,
   deleteOwnerDorm,
+  getMediaSources,
   getMe,
   getOwnerBookingRequests,
   getOwnerDorms,
@@ -52,6 +53,29 @@ const bookingStatusOptions: BookingRequest["status"][] = [
   "DECLINED",
   "CANCELLED",
 ];
+
+const MEDIA_FALLBACK_STATE_KEY = "mediaFallbackState";
+
+function handleMediaImageError(
+  event: React.SyntheticEvent<HTMLImageElement, Event>,
+  fallback?: string,
+) {
+  const img = event.currentTarget;
+  const state = img.dataset[MEDIA_FALLBACK_STATE_KEY];
+
+  if (fallback && state !== "fallback") {
+    img.dataset[MEDIA_FALLBACK_STATE_KEY] = "fallback";
+    if (img.src !== fallback) {
+      img.src = fallback;
+    }
+    return;
+  }
+
+  if (state !== "placeholder") {
+    img.dataset[MEDIA_FALLBACK_STATE_KEY] = "placeholder";
+    img.src = TRANSPARENT_PIXEL;
+  }
+}
 
 type DormFormState = {
   name: string;
@@ -708,7 +732,8 @@ function DormCard({
     submitting: boolean;
     error: string | null;
   }>>({});
-  const coverPhotoUrl = resolveMediaUrl(dorm.cover_photo);
+  const coverPhotoSources = getMediaSources(dorm.cover_photo);
+  const coverPhotoUrl = coverPhotoSources.primary ?? coverPhotoSources.fallback;
 
   function handleOpenCreateRoom() {
     setRoomFormMode("create");
@@ -887,6 +912,7 @@ function DormCard({
             src={coverPhotoUrl}
             alt={`${dorm.name} cover`}
             className="h-48 w-full object-cover"
+            onError={(event) => handleMediaImageError(event, coverPhotoSources.fallback)}
           />
         </div>
       ) : null}
@@ -922,7 +948,8 @@ function DormCard({
         {dorm.images && dorm.images.length > 0 ? (
           <div className="grid grid-cols-3 gap-3">
             {dorm.images.map((image) => {
-              const imageUrl = resolveMediaUrl(image.image);
+              const imageSources = getMediaSources(image.image);
+              const imageUrl = imageSources.primary ?? imageSources.fallback;
               if (!imageUrl) {
                 return null;
               }
@@ -933,6 +960,7 @@ function DormCard({
                     src={imageUrl}
                     alt={image.caption ?? `${dorm.name} gallery`}
                     className="h-24 w-full object-cover"
+                    onError={(event) => handleMediaImageError(event, imageSources.fallback)}
                   />
                   <button
                     type="button"
@@ -1061,7 +1089,8 @@ function DormCard({
                     {room.images && room.images.length > 0 ? (
                       <div className="grid grid-cols-3 gap-3">
                         {room.images.map((image) => {
-                          const imageUrl = resolveMediaUrl(image.image);
+                          const imageSources = getMediaSources(image.image);
+                          const imageUrl = imageSources.primary ?? imageSources.fallback;
                           if (!imageUrl) {
                             return null;
                           }
@@ -1072,6 +1101,7 @@ function DormCard({
                                 src={imageUrl}
                                 alt={image.caption ?? `${room.name} image`}
                                 className="h-24 w-full object-cover"
+                                onError={(event) => handleMediaImageError(event, imageSources.fallback)}
                               />
                               <button
                                 type="button"

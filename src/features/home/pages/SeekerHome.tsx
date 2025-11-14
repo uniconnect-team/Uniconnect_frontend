@@ -1,13 +1,14 @@
 // FILE: src/features/home/pages/SeekerHome.tsx
 import { useEffect, useMemo, useState } from "react";
-import type { FormEvent } from "react";
+import type { FormEvent, SyntheticEvent } from "react";
 import { Icon } from "../../../components/Icon";
 import { BottomMenu } from "../../../components/BottomMenu";
 import { FeedbackMessage } from "../../../components/FeedbackMessage";
 import { BookingStatusBadge } from "../../../components/BookingStatusBadge";
 import {
-  MEDIA_API_URL,
+  TRANSPARENT_PIXEL,
   createSeekerBookingRequest,
+  getMediaSources,
   getMe,
   getSeekerBookingRequests,
   getSeekerDorms,
@@ -29,6 +30,29 @@ const serviceFlags: { key: ServiceKey; label: string }[] = [
   { key: "has_water", label: "Water" },
   { key: "has_internet", label: "Internet" },
 ];
+
+const MEDIA_FALLBACK_STATE_KEY = "mediaFallbackState";
+
+function handleMediaImageError(
+  event: SyntheticEvent<HTMLImageElement, Event>,
+  fallback?: string,
+) {
+  const img = event.currentTarget;
+  const state = img.dataset[MEDIA_FALLBACK_STATE_KEY];
+
+  if (fallback && state !== "fallback") {
+    img.dataset[MEDIA_FALLBACK_STATE_KEY] = "fallback";
+    if (img.src !== fallback) {
+      img.src = fallback;
+    }
+    return;
+  }
+
+  if (state !== "placeholder") {
+    img.dataset[MEDIA_FALLBACK_STATE_KEY] = "placeholder";
+    img.src = TRANSPARENT_PIXEL;
+  }
+}
 
 type BookingModalState = {
   dorm: OwnerDorm;
@@ -393,7 +417,8 @@ export function SeekerHome() {
           ) : (
             <div className="space-y-8">
               {activeDorms.map((dorm) => {
-                const coverPhotoUrl = resolveMediaUrl(dorm.cover_photo);
+                const coverPhotoSources = getMediaSources(dorm.cover_photo);
+                const coverPhotoUrl = coverPhotoSources.primary ?? coverPhotoSources.fallback;
 
                 return (
                   <article
@@ -429,6 +454,7 @@ export function SeekerHome() {
                         src={coverPhotoUrl}
                         alt={`${dorm.name} cover`}
                         className="h-56 w-full object-cover"
+                        onError={(event) => handleMediaImageError(event, coverPhotoSources.fallback)}
                       />
                     </div>
                   ) : null}
@@ -465,7 +491,8 @@ export function SeekerHome() {
                     {dorm.images && dorm.images.length > 0 ? (
                       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                         {dorm.images.map((image) => {
-                          const imageUrl = resolveMediaUrl(image.image);
+                          const imageSources = getMediaSources(image.image);
+                          const imageUrl = imageSources.primary ?? imageSources.fallback;
                           if (!imageUrl) {
                             return null;
                           }
@@ -476,6 +503,7 @@ export function SeekerHome() {
                                 src={imageUrl}
                                 alt={image.caption ?? `${dorm.name} image`}
                                 className="h-32 w-full object-cover"
+                                onError={(event) => handleMediaImageError(event, imageSources.fallback)}
                               />
                               {image.caption ? (
                                 <p className="truncate px-2 pb-2 pt-1 text-[10px] text-gray-600">{image.caption}</p>
@@ -533,7 +561,8 @@ export function SeekerHome() {
                             {room.images && room.images.length > 0 ? (
                               <div className="grid grid-cols-3 gap-3">
                                 {room.images.map((image) => {
-                                  const imageUrl = resolveMediaUrl(image.image);
+                                  const imageSources = getMediaSources(image.image);
+                                  const imageUrl = imageSources.primary ?? imageSources.fallback;
                                   if (!imageUrl) {
                                     return null;
                                   }
@@ -544,6 +573,7 @@ export function SeekerHome() {
                                         src={imageUrl}
                                         alt={image.caption ?? `${room.name} image`}
                                         className="h-24 w-full object-cover"
+                                        onError={(event) => handleMediaImageError(event, imageSources.fallback)}
                                       />
                                     </div>
                                   );

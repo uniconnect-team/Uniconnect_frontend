@@ -30,6 +30,17 @@ export const CORE_API_URL = import.meta.env.VITE_CORE_API_URL ?? "http://localho
 
 const ABSOLUTE_URL_PATTERN = /^https?:\/\//i;
 const MEDIA_API_BASE = MEDIA_API_URL.replace(/\/+$/, "");
+const API_BASE = API_URL.replace(/\/+$/, "");
+
+export const TRANSPARENT_PIXEL =
+  "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==";
+
+function joinBaseWithPath(base: string, path: string) {
+  if (path.startsWith("/")) {
+    return `${base}${path}`;
+  }
+  return `${base}/${path}`;
+}
 
 export function resolveMediaUrl(path?: string | null): string | undefined {
   if (!path) {
@@ -54,11 +65,38 @@ export function resolveMediaUrl(path?: string | null): string | undefined {
     return trimmed;
   }
 
-  if (trimmed.startsWith("/")) {
-    return `${MEDIA_API_BASE}${trimmed}`;
+  const normalizedPath = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+  return `${MEDIA_API_BASE}${normalizedPath}`;
+}
+
+export function resolveLegacyMediaUrl(path?: string | null): string | undefined {
+  if (!path) {
+    return undefined;
   }
 
-  return `${MEDIA_API_BASE}/${trimmed}`;
+  const trimmed = path.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  if (ABSOLUTE_URL_PATTERN.test(trimmed)) {
+    return trimmed;
+  }
+
+  return joinBaseWithPath(API_BASE, trimmed);
+}
+
+export function getMediaSources(path?: string | null): {
+  primary?: string;
+  fallback?: string;
+} {
+  const primary = resolveMediaUrl(path);
+  const fallbackCandidate = resolveLegacyMediaUrl(path);
+
+  return {
+    primary,
+    fallback: fallbackCandidate && fallbackCandidate !== primary ? fallbackCandidate : undefined,
+  };
 }
 
 export class ApiError extends Error {
