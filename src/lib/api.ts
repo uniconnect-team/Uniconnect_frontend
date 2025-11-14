@@ -119,16 +119,6 @@ export function resolveMediaUrl(path?: string | null): string | undefined {
   }
 
   if (ABSOLUTE_URL_PATTERN.test(trimmed)) {
-    try {
-      const absolute = new URL(trimmed);
-      const { sanitized, recognized } = extractMediaPathSegments(absolute.pathname);
-      if (recognized) {
-        return buildMediaFileUrl(sanitized, `${absolute.search}${absolute.hash}`);
-      }
-    } catch (error) {
-      return trimmed;
-    }
-
     return trimmed;
   }
 
@@ -352,7 +342,19 @@ export async function updateProfile(body: Partial<SeekerProfileCompletionBody> |
 
 export async function getOwnerDorms(params?: Record<string, string | number | boolean | null | undefined>) {
   const query = buildQuery(params);
-  return api<OwnerDorm[]>(`/dorms/owner/dorms/${query}`, undefined, DORMS_API_URL);
+  try {
+    return await api<OwnerDorm[]>(`/api/users/owner/dorms/${query}`);
+  } catch (error) {
+    const shouldFallback =
+      error instanceof TypeError ||
+      (error instanceof ApiError && (error.status === 404 || error.status === 405));
+
+    if (!shouldFallback) {
+      throw error;
+    }
+
+    return api<OwnerDorm[]>(`/dorms/owner/dorms/${query}`, undefined, DORMS_API_URL);
+  }
 }
 
 function serializeDormPayload(payload: DormRequestBody) {
@@ -507,7 +509,19 @@ export async function createBookingRequest(payload: BookingRequestPayload) {
 
 export async function getSeekerDorms(params?: Record<string, string | number | boolean | null | undefined>) {
   const query = buildQuery(params);
-  return api<OwnerDorm[]>(`/dorms/seeker/dorms/${query}`, undefined, DORMS_API_URL);
+  try {
+    return await api<OwnerDorm[]>(`/api/users/seeker/dorms/${query}`);
+  } catch (error) {
+    const shouldFallback =
+      error instanceof TypeError ||
+      (error instanceof ApiError && (error.status === 404 || error.status === 405));
+
+    if (!shouldFallback) {
+      throw error;
+    }
+
+    return api<OwnerDorm[]>(`/dorms/seeker/dorms/${query}`, undefined, DORMS_API_URL);
+  }
 }
 
 export async function getSeekerBookingRequests(filters?: BookingRequestFilters) {
