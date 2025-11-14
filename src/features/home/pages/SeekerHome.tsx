@@ -1,12 +1,14 @@
 // FILE: src/features/home/pages/SeekerHome.tsx
 import { useEffect, useMemo, useState } from "react";
-import type { FormEvent } from "react";
+import type { FormEvent, SyntheticEvent } from "react";
 import { Icon } from "../../../components/Icon";
 import { BottomMenu } from "../../../components/BottomMenu";
 import { FeedbackMessage } from "../../../components/FeedbackMessage";
 import { BookingStatusBadge } from "../../../components/BookingStatusBadge";
 import {
+  TRANSPARENT_PIXEL,
   createSeekerBookingRequest,
+  getMediaSources,
   getMe,
   getSeekerBookingRequests,
   getSeekerDorms,
@@ -27,6 +29,29 @@ const serviceFlags: { key: ServiceKey; label: string }[] = [
   { key: "has_water", label: "Water" },
   { key: "has_internet", label: "Internet" },
 ];
+
+const MEDIA_FALLBACK_STATE_KEY = "mediaFallbackState";
+
+function handleMediaImageError(
+  event: SyntheticEvent<HTMLImageElement, Event>,
+  fallback?: string,
+) {
+  const img = event.currentTarget;
+  const state = img.dataset[MEDIA_FALLBACK_STATE_KEY];
+
+  if (fallback && state !== "fallback") {
+    img.dataset[MEDIA_FALLBACK_STATE_KEY] = "fallback";
+    if (img.src !== fallback) {
+      img.src = fallback;
+    }
+    return;
+  }
+
+  if (state !== "placeholder") {
+    img.dataset[MEDIA_FALLBACK_STATE_KEY] = "placeholder";
+    img.src = TRANSPARENT_PIXEL;
+  }
+}
 
 type BookingModalState = {
   dorm: OwnerDorm;
@@ -390,14 +415,18 @@ export function SeekerHome() {
             </div>
           ) : (
             <div className="space-y-8">
-              {activeDorms.map((dorm) => (
-                <article
-                  key={dorm.id}
-                  id={`dorm-${dorm.id}`}
-                  className={`space-y-6 rounded-3xl border bg-white p-6 shadow-sm transition ${
-                    selectedDormId === dorm.id ? "border-[color:var(--brand)]/60" : "border-gray-200"
-                  }`}
-                >
+              {activeDorms.map((dorm) => {
+                const coverPhotoSources = getMediaSources(dorm.cover_photo);
+                const coverPhotoUrl = coverPhotoSources.primary ?? coverPhotoSources.fallback;
+
+                return (
+                  <article
+                    key={dorm.id}
+                    id={`dorm-${dorm.id}`}
+                    className={`space-y-6 rounded-3xl border bg-white p-6 shadow-sm transition ${
+                      selectedDormId === dorm.id ? "border-[color:var(--brand)]/60" : "border-gray-200"
+                    }`}
+                  >
                   <header className="space-y-2">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div>
@@ -418,9 +447,14 @@ export function SeekerHome() {
                     ) : null}
                   </header>
 
-                  {dorm.cover_photo ? (
+                  {coverPhotoUrl ? (
                     <div className="overflow-hidden rounded-2xl border border-gray-100">
-                      <img src={dorm.cover_photo} alt={`${dorm.name} cover`} className="h-56 w-full object-cover" />
+                      <img
+                        src={coverPhotoUrl}
+                        alt={`${dorm.name} cover`}
+                        className="h-56 w-full object-cover"
+                        onError={(event) => handleMediaImageError(event, coverPhotoSources.fallback)}
+                      />
                     </div>
                   ) : null}
 
@@ -455,14 +489,27 @@ export function SeekerHome() {
                     <h4 className="text-sm font-semibold text-gray-800">Dorm gallery</h4>
                     {dorm.images && dorm.images.length > 0 ? (
                       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                        {dorm.images.map((image) => (
-                          <div key={image.id} className="overflow-hidden rounded-xl border border-gray-200">
-                            <img src={image.image} alt={image.caption ?? `${dorm.name} image`} className="h-32 w-full object-cover" />
-                            {image.caption ? (
-                              <p className="truncate px-2 pb-2 pt-1 text-[10px] text-gray-600">{image.caption}</p>
-                            ) : null}
-                          </div>
-                        ))}
+                        {dorm.images.map((image) => {
+                          const imageSources = getMediaSources(image.image);
+                          const imageUrl = imageSources.primary ?? imageSources.fallback;
+                          if (!imageUrl) {
+                            return null;
+                          }
+
+                          return (
+                            <div key={image.id} className="overflow-hidden rounded-xl border border-gray-200">
+                              <img
+                                src={imageUrl}
+                                alt={image.caption ?? `${dorm.name} image`}
+                                className="h-32 w-full object-cover"
+                                onError={(event) => handleMediaImageError(event, imageSources.fallback)}
+                              />
+                              {image.caption ? (
+                                <p className="truncate px-2 pb-2 pt-1 text-[10px] text-gray-600">{image.caption}</p>
+                              ) : null}
+                            </div>
+                          );
+                        })}
                       </div>
                     ) : (
                       <p className="text-xs text-gray-500">No photos added yet.</p>
@@ -512,15 +559,24 @@ export function SeekerHome() {
 
                             {room.images && room.images.length > 0 ? (
                               <div className="grid grid-cols-3 gap-3">
-                                {room.images.map((image) => (
-                                  <div key={image.id} className="overflow-hidden rounded-xl border border-gray-200">
-                                    <img
-                                      src={image.image}
-                                      alt={image.caption ?? `${room.name} image`}
-                                      className="h-24 w-full object-cover"
-                                    />
-                                  </div>
-                                ))}
+                                {room.images.map((image) => {
+                                  const imageSources = getMediaSources(image.image);
+                                  const imageUrl = imageSources.primary ?? imageSources.fallback;
+                                  if (!imageUrl) {
+                                    return null;
+                                  }
+
+                                  return (
+                                    <div key={image.id} className="overflow-hidden rounded-xl border border-gray-200">
+                                      <img
+                                        src={imageUrl}
+                                        alt={image.caption ?? `${room.name} image`}
+                                        className="h-24 w-full object-cover"
+                                        onError={(event) => handleMediaImageError(event, imageSources.fallback)}
+                                      />
+                                    </div>
+                                  );
+                                })}
                               </div>
                             ) : null}
 
@@ -544,8 +600,9 @@ export function SeekerHome() {
                       <p className="text-sm text-gray-500">No rooms published yet.</p>
                     )}
                   </div>
-                </article>
-              ))}
+                  </article>
+                );
+              })}
             </div>
           )}
         </section>
