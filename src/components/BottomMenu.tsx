@@ -21,9 +21,12 @@ export function BottomMenu() {
       icon: "building" as const,
       isActive: (currentPath: string) => homeActivePaths.has(currentPath),
     },
+    { name: "Carpool", path: "/carpooling", icon: "globe" as const },
     { name: "Chat", path: "/chat", icon: "messages-square" as const },
     { name: "Favorites", path: "/favorites", icon: "heart" as const },
     { name: "Profile", path: "/profile", icon: "user" as const },
+    
+
   ];
 
   return (
