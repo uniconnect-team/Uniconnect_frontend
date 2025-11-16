@@ -1,0 +1,22 @@
+export const LEBANON_CITIES = [
+  "Beirut",
+  "Byblos",
+  "Tripoli",
+  "Sidon",
+  "Tyre",
+  "Zahle",
+  "Jounieh",
+  "Baalbek",
+  "Bcharré",
+  "Batroun",
+  "Nabatieh",
+  "Aley",
+  "Chouf",
+  "Keserwan",
+  "Metn",
+  "Bekaa",
+  "Hermel",
+  "Marjeyoun",
+  "Rachaya",
+  "Hasbaya"
+];
