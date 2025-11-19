@@ -159,27 +159,43 @@ export function Carpooling() {
 
   // BOOK RIDE
   const handleBookRide = async (ride: CarpoolRide) => {
+    // prevent double booking on frontend
+    const alreadyBooked = myBookings.some((b) => b.ride.id === ride.id);
+    if (alreadyBooked) {
+      alert("You already booked this ride.");
+      return;
+    }
+
     if (ride.seats_available <= 0) {
       alert("This ride is full.");
       return;
     }
 
     try {
-      const updatedRide = await api<CarpoolRide>(
+      // /book/ returns a CarpoolBooking, not a CarpoolRide
+      const newBooking = await api<CarpoolBooking>(
         `/api/v1/carpooling/rides/${ride.id}/book/`,
-        {
-          method: "POST",
-        }
+        { method: "POST" }
       );
 
+      const updatedRide = newBooking.ride;
+
+      // Update rides list with updated ride coming from backend
       setRides((prev) =>
         prev.map((r) => (r.id === updatedRide.id ? updatedRide : r))
       );
 
+      // Add to "My bookings" so UI shows it immediately
+      setMyBookings((prev) => [...prev, newBooking]);
+
       alert("Seat booked!");
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert("Failed to book seat.");
+      const msg =
+        err?.detail ||
+        err?.message ||
+        "Failed to book seat.";
+      alert(msg);
     }
   };
 
@@ -272,6 +288,11 @@ export function Carpooling() {
           <div className="space-y-3">
             {filteredRides.map((ride) => {
               const isFavorite = favoriteIds.includes(ride.id);
+              const alreadyBooked = myBookings.some(
+                (b) => b.ride.id === ride.id
+              );
+
+              const isFull = ride.seats_available === 0;
 
               return (
                 <div
@@ -322,15 +343,17 @@ export function Carpooling() {
                   </div>
 
                   <button
-                    disabled={ride.seats_available === 0}
+                    disabled={isFull || alreadyBooked}
                     onClick={() => handleBookRide(ride)}
                     className={`mt-2 w-full text-sm py-1.5 rounded-lg ${
-                      ride.seats_available === 0
+                      isFull
                         ? "bg-gray-200 text-gray-500"
+                        : alreadyBooked
+                        ? "bg-blue-100 text-blue-700"
                         : "bg-green-600 text-white"
                     }`}
                   >
-                    {ride.seats_available === 0 ? "Full" : "Book seat"}
+                    {isFull ? "Full" : alreadyBooked ? "Booked" : "Book seat"}
                   </button>
                 </div>
               );
