@@ -191,3 +191,71 @@ export type BookingRequestPayload = {
   status?: BookingRequestStatus;
   owner_note?: string | null;
 };
+
+export type RoommateProfile = {
+  id: number;
+  sleep_schedule: "EARLY_BIRD" | "NIGHT_OWL" | "FLEXIBLE";
+  cleanliness_level: "VERY_CLEAN" | "MODERATELY_CLEAN" | "RELAXED";
+  social_preference: "VERY_SOCIAL" | "MODERATELY_SOCIAL" | "PREFER_QUIET";
+  study_habits: "LIBRARY" | "DORM" | "BOTH";
+  interests: string;
+  budget_range: string;
+  preferred_gender: string;
+  is_active: boolean;
+  
+  bio: string;
+  user_info: {
+    id: number;
+    full_name: string;
+    university_domain: string;
+  };
+  created_at: string;
+  updated_at: string;
+};
+
+export interface RoommateMatch {
+  id: number;
+  seeker: number;
+  match: number;
+  compatibility_score: number;
+  is_viewed: boolean;
+  is_favorited: boolean;
+  created_at: string;
+  match_info: {
+    id: number;
+    full_name: string;
+    email: string;
+    university_domain: string;
+  };
+  match_profile: {
+    sleep_schedule: string;
+    cleanliness_level: string;
+    social_preference: string;
+    study_habits: string;
+    interests: string;
+    budget_range: string;
+    preferred_gender: string;  // ADD THIS LINE
+    bio: string;
+  };
+}
+
+export type RoommateRequest = {
+  id: number;
+  receiver: number;
+  message: string;
+  status: "PENDING" | "ACCEPTED" | "DECLINED" | "CANCELLED";
+  response_message: string;
+  sender_info: {
+    id: number;
+    full_name: string;
+    email: string;
+  };
+  receiver_info: {
+    id: number;
+    full_name: string;
+    email: string;
+  };
+  responded_at: string | null;
+  created_at: string;
+  updated_at: string;
+};

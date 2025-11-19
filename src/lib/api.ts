@@ -16,6 +16,9 @@ import type {
   SeekerProfileCompletionBody,
   OwnerProfileCompletionBody,
   ProfileCompletionResponse,
+  RoommateProfile,     
+  RoommateMatch,        
+  RoommateRequest, 
 } from "./types";
 
 // Microservice URLs
@@ -24,6 +27,7 @@ const BOOKING_SERVICE_URL = import.meta.env.VITE_BOOKING_SERVICE_URL ?? "http://
 const DORM_SERVICE_URL = import.meta.env.VITE_DORM_SERVICE_URL ?? "http://localhost:9003";
 const NOTIFICATION_SERVICE_URL = import.meta.env.VITE_NOTIFICATION_SERVICE_URL ?? "http://localhost:9004";
 const PROFILE_SERVICE_URL = import.meta.env.VITE_PROFILE_SERVICE_URL ?? "http://localhost:9005";
+const ROOMMATE_SERVICE_URL = import.meta.env.VITE_ROOMMATE_SERVICE_URL ?? "http://localhost:9006";
 
 // Route requests to the correct microservice based on path
 function getServiceUrl(path: string): string {
@@ -39,6 +43,11 @@ function getServiceUrl(path: string): string {
   if (path.includes("/notifications")) {
     return NOTIFICATION_SERVICE_URL;
   }
+  // CHECK FOR ROOMMATE FIRST (before /me check)
+  if (path.includes("/roommate/")) {
+    return ROOMMATE_SERVICE_URL;
+  }
+  // Then check for profile service paths
   if (path.includes("/me") || path.includes("/complete-profile") || path.includes("/update-profile")) {
     return PROFILE_SERVICE_URL;
   }
@@ -375,5 +384,73 @@ export async function createSeekerBookingRequest(payload: BookingRequestPayload)
   return api<BookingRequest>("/api/users/seeker/booking-requests/", {
     method: "POST",
     body: JSON.stringify(payload),
+  });
+}
+
+// Roommate API functions
+export async function getRoommateProfile() {
+  // Use a fixed ID since there's only one profile per user
+  return api<RoommateProfile>("/api/roommate/profile/me/");
+}
+
+export async function createOrUpdateRoommateProfile(data: Partial<RoommateProfile>) {
+  return api<RoommateProfile>("/api/roommate/profile/me/", {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getRoommateMatches(params?: { min_score?: number; favorited?: boolean }) {
+  const query = buildQuery(params);
+  return api<RoommateMatch[]>(`/api/roommate/matches/${query}`);
+}
+
+export async function refreshRoommateMatches() {
+  return api<{ detail: string }>("/api/roommate/matches/refresh_matches/", {
+    method: "POST",
+  });
+}
+
+export async function toggleMatchFavorite(matchId: number) {
+  return api<RoommateMatch>(`/api/roommate/matches/${matchId}/toggle_favorite/`, {
+    method: "POST",
+  });
+}
+
+export async function markMatchViewed(matchId: number) {
+  return api<RoommateMatch>(`/api/roommate/matches/${matchId}/mark_viewed/`, {
+    method: "POST",
+  });
+}
+
+export async function getRoommateRequests(params?: { type?: "sent" | "received" | "all"; status?: string }) {
+  const query = buildQuery(params);
+  return api<RoommateRequest[]>(`/api/roommate/requests/${query}`);
+}
+
+export async function sendRoommateRequest(data: { receiver: number; message?: string }) {
+  return api<RoommateRequest>("/api/roommate/requests/", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function acceptRoommateRequest(requestId: number, responseMessage?: string) {
+  return api<RoommateRequest>(`/api/roommate/requests/${requestId}/accept/`, {
+    method: "POST",
+    body: JSON.stringify({ response_message: responseMessage || "" }),
+  });
+}
+
+export async function declineRoommateRequest(requestId: number, responseMessage?: string) {
+  return api<RoommateRequest>(`/api/roommate/requests/${requestId}/decline/`, {
+    method: "POST",
+    body: JSON.stringify({ response_message: responseMessage || "" }),
+  });
+}
+
+export async function cancelRoommateRequest(requestId: number) {
+  return api<RoommateRequest>(`/api/roommate/requests/${requestId}/cancel/`, {
+    method: "POST",
   });
 }
