@@ -1,11 +1,25 @@
 // FILE: src/components/BottomMenu.tsx
 import { Link, useLocation } from "react-router-dom";
 import { Icon, type IconName } from "./Icon";
+import { useEffect, useState } from "react";
+import { getMe } from "../lib/api";
 
 export function BottomMenu() {
   const location = useLocation();
+  const [userRole, setUserRole] = useState<string | null>(null);
   const defaultHomePath = localStorage.getItem("defaultHomePath") || "/seekers/home";
   const homeActivePaths = new Set(["/seekers/home", "/owners/dashboard", defaultHomePath]);
+
+  useEffect(() => {
+    // Get user role on mount
+    getMe()
+      .then((user) => {
+        setUserRole(user.role);
+      })
+      .catch(() => {
+        setUserRole(null);
+      });
+  }, []);
 
   type MenuItem = {
     name: string;
@@ -14,20 +28,33 @@ export function BottomMenu() {
     isActive?: (currentPath: string) => boolean;
   };
 
-  const menuItems: MenuItem[] = [
-    {
-      name: "Home",
-      path: defaultHomePath,
-      icon: "building" as const,
-      isActive: (currentPath: string) => homeActivePaths.has(currentPath),
-    },
-    { name: "Carpool", path: "/carpooling", icon: "globe" as const },
-    { name: "Chat", path: "/chat", icon: "messages-square" as const },
-    { name: "Favorites", path: "/favorites", icon: "heart" as const },
-    { name: "Profile", path: "/profile", icon: "user" as const },
-    
+  // Build menu items based on user role
+  const getMenuItems = (): MenuItem[] => {
+    const items: MenuItem[] = [
+      {
+        name: "Home",
+        path: defaultHomePath,
+        icon: "building" as const,
+        isActive: (currentPath: string) => homeActivePaths.has(currentPath),
+      },
+    ];
 
-  ];
+    // Add Roommate only for SEEKER
+    if (userRole === "SEEKER") {
+      items.push({ name: "Roommate", path: "/roommate", icon: "users" as const });
+    }
+  
+    if (userRole === "SEEKER") {
+      items.push({ name: "Carpool", path: "/carpooling", icon: "globe" as const });
+    }
+
+    // Profile for everyone
+    items.push({ name: "Profile", path: "/profile", icon: "user" as const });
+
+    return items;
+  };
+
+  const menuItems = getMenuItems();
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
