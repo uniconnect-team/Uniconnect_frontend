@@ -27,6 +27,7 @@ const BOOKING_SERVICE_URL = import.meta.env.VITE_BOOKING_SERVICE_URL ?? "http://
 const DORM_SERVICE_URL = import.meta.env.VITE_DORM_SERVICE_URL ?? "http://localhost:9003";
 const NOTIFICATION_SERVICE_URL = import.meta.env.VITE_NOTIFICATION_SERVICE_URL ?? "http://localhost:9004";
 const PROFILE_SERVICE_URL = import.meta.env.VITE_PROFILE_SERVICE_URL ?? "http://localhost:9005";
+const CARPOOL_SERVICE_URL = import.meta.env.VITE_CARPOOL_SERVICE_URL ?? "http://localhost:9006";
 const ROOMMATE_SERVICE_URL = import.meta.env.VITE_ROOMMATE_SERVICE_URL ?? "http://localhost:9006";
 
 // Route requests to the correct microservice based on path
@@ -51,10 +52,15 @@ function getServiceUrl(path: string): string {
   if (path.includes("/me") || path.includes("/complete-profile") || path.includes("/update-profile")) {
     return PROFILE_SERVICE_URL;
   }
-  
-  // Fallback to auth service
+
+  // ⭐ ADD THIS
+  if (path.includes("/carpool")) {
+    return CARPOOL_SERVICE_URL;
+  }
+
   return AUTH_SERVICE_URL;
 }
+
 
 export class ApiError extends Error {
   status: number;

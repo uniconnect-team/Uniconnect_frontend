@@ -43,6 +43,10 @@ export function BottomMenu() {
     if (userRole === "SEEKER") {
       items.push({ name: "Roommate", path: "/roommate", icon: "users" as const });
     }
+  
+    if (userRole === "SEEKER") {
+      items.push({ name: "Carpool", path: "/carpooling", icon: "globe" as const });
+    }
 
     // Profile for everyone
     items.push({ name: "Profile", path: "/profile", icon: "user" as const });

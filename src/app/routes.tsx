@@ -16,6 +16,10 @@ import { Roommate } from "../features/roommate/pages/Roommate";
 import { Chat } from "../features/chat/pages/Chat";
 import { Favorites } from "../features/favorites/pages/Favorites";
 import { Transportation } from "../features/transportation/pages/Transportation";
+import { Carpooling } from "../features/transportation/pages/Carpooling";
+
+
+
 
 export function AppRoutes() {
   const element = useRoutes([
@@ -42,6 +46,11 @@ export function AppRoutes() {
         { path: "/home", element: <Navigate to="/seekers/home" replace /> },
         { path: "/role-select", element: <Navigate to="/choose-role" replace /> },
         { path: "*", element: <Navigate to="/" replace /> },
+
+        { path: "/transportation", element: <Transportation /> },
+
+
+        { path: "/carpooling", element: <Carpooling /> },
       ],
     },
   ]);
