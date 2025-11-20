@@ -28,7 +28,7 @@ const DORM_SERVICE_URL = import.meta.env.VITE_DORM_SERVICE_URL ?? "http://localh
 const NOTIFICATION_SERVICE_URL = import.meta.env.VITE_NOTIFICATION_SERVICE_URL ?? "http://localhost:9004";
 const PROFILE_SERVICE_URL = import.meta.env.VITE_PROFILE_SERVICE_URL ?? "http://localhost:9005";
 const CARPOOL_SERVICE_URL = import.meta.env.VITE_CARPOOL_SERVICE_URL ?? "http://localhost:9006";
-const ROOMMATE_SERVICE_URL = import.meta.env.VITE_ROOMMATE_SERVICE_URL ?? "http://localhost:9006";
+const ROOMMATE_SERVICE_URL = import.meta.env.VITE_ROOMMATE_SERVICE_URL ?? "http://localhost:9007";
 
 // Route requests to the correct microservice based on path
 function getServiceUrl(path: string): string {
