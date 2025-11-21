@@ -127,7 +127,7 @@ export function Profile() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[300px]">
+      <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-3">
           <div className="w-12 h-12 border-4 border-[color:var(--brand)] border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-sm text-gray-500">Loading your profile...</p>
